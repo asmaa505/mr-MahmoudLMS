@@ -1,0 +1,140 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  phone        String        @unique
+  password     String
+  role         String        @default("STUDENT") // "STUDENT" or "ADMIN"
+  isApproved   Boolean       @default(false)
+  isBlocked    Boolean       @default(false)
+  grade        String        @default("1")       // "1" for 1st Sec, "2" for 2nd Sec, "3" for 3rd Sec
+  createdAt    DateTime      @default(now())
+  sessions     Session[]
+  enrollments  Enrollment[]
+  quizAttempts QuizAttempt[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
+
+model Course {
+  id           String           @id @default(uuid())
+  title        String
+  description  String?
+  image        String?
+  grade        String           // "1", "2", "3"
+  isPublished  Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  chapters     Chapter[]
+  enrollments  Enrollment[]
+  codes        ActivationCode[]
+}
+
+model Chapter {
+  id          String     @id @default(uuid())
+  title       String
+  order       Int
+  courseId    String
+  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lectures    Lecture[]
+  quizzes     Quiz[]
+  homeworks   Homework[]
+  createdAt   DateTime   @default(now())
+}
+
+model Lecture {
+  id           String           @id @default(uuid())
+  title        String
+  videoUrl     String           // Video stream link or embed source
+  duration     String?          // e.g. "45:00"
+  order        Int
+  chapterId    String
+  chapter      Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  codes        ActivationCode[]
+  createdAt    DateTime         @default(now())
+}
+
+model Homework {
+  id          String   @id @default(uuid())
+  title       String
+  pdfUrl      String   // Path to PDF summary or assignment sheet
+  chapterId   String
+  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Quiz {
+  id           String        @id @default(uuid())
+  title        String
+  duration     Int           // Duration in minutes
+  passingScore Int           @default(50) // Minimum percentage score required to pass
+  isMandatory  Boolean       @default(true)
+  chapterId    String
+  chapter      Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  questions    Question[]
+  attempts     QuizAttempt[]
+  createdAt    DateTime      @default(now())
+}
+
+model Question {
+  id            String   @id @default(uuid())
+  quizId        String
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  text          String   // Supports LaTeX physics formulas (e.g. $E=mc^2$)
+  imageUrl      String?  // Diagram image link
+  type          String   // "MCQ" or "WRITTEN"
+  options       String?  // JSON array string: e.g. ["أ", "ب", "ج", "د"]
+  correctOption Int?     // Zero-based index of correct answer
+  explanation   String?  // Scientific explanation for physics concepts
+}
+
+model Enrollment {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  unlockedAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+model ActivationCode {
+  id         String    @id @default(uuid())
+  code       String    @unique
+  courseId   String?
+  course     Course?   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lectureId  String?
+  lecture    Lecture?  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  isUsed     Boolean   @default(false)
+  usedById   String?
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+model QuizAttempt {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId      String
+  quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  score       Float     // Percentage score achieved (0 - 100)
+  answers     String    // JSON string containing detailed student responses
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+}

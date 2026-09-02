@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { getAuthUser } from "@/lib/auth";
+
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user || user.role !== "STUDENT") {
+      return NextResponse.json({ error: "غير مصرح لك بالوصول" }, { status: 401 });
+    }
+
+    const { quizId, answers } = await request.json();
+    if (!quizId || !answers) {
+      return NextResponse.json({ error: "بيانات ناقصة" }, { status: 400 });
+    }
+
+    // 1. Fetch Quiz with Questions
+    const quiz = await db.quiz.findUnique({
+      where: { id: quizId },
+      include: { questions: true },
+    });
+
+    if (!quiz) {
+      return NextResponse.json({ error: "الاختبار غير موجود" }, { status: 404 });
+    }
+
+    // 2. Grade MCQ Questions
+    const mcqQuestions = quiz.questions.filter((q) => q.type === "MCQ");
+    let correctCount = 0;
+
+    mcqQuestions.forEach((q) => {
+      const studentAnswer = answers[q.id];
+      if (studentAnswer !== undefined && Number(studentAnswer) === q.correctOption) {
+        correctCount++;
+      }
+    });
+
+    // Score is correct MCQ percentage (or 100% if no MCQs)
+    const score = mcqQuestions.length > 0 ? (correctCount / mcqQuestions.length) * 100 : 100;
+
+    // 3. Save Quiz Attempt
+    const attempt = await db.quizAttempt.create({
+      data: {
+        userId: user.id,
+        quizId: quiz.id,
+        score,
+        answers: JSON.stringify(answers),
+        submittedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({
+      message: "تم تسليم الاختبار بنجاح",
+      score,
+      attemptId: attempt.id,
+    });
+  } catch (error: any) {
+    console.error("Quiz Submission Error:", error);
+    return NextResponse.json({ error: "حدث خطأ أثناء تصحيح الاختبار" }, { status: 550 });
+  }
+}
