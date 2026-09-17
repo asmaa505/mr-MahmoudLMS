@@ -2,8 +2,12 @@ import React from "react";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth";
+import dynamic from "next/dynamic";
 import QuizManagerClient from "./QuizManagerClient";
-import QuizLeaderboard from "./QuizLeaderboard";
+
+const QuizLeaderboard = dynamic(() => import("./QuizLeaderboard"), {
+  loading: () => <div className="h-48 bg-slate-900/50 animate-pulse rounded-2xl border border-slate-800" />,
+});
 
 export default async function AdminQuizzesPage() {
   const user = await getAuthUser();

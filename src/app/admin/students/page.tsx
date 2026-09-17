@@ -1,9 +1,14 @@
 import React from "react";
 import { db } from "@/lib/db";
 import { Check, ShieldAlert, ShieldCheck, RefreshCw } from "lucide-react";
+import dynamic from "next/dynamic";
 import { approveStudentAction, blockStudentAction, resetSessionsAction } from "./actions";
 import DeleteStudentForm from "./DeleteStudentForm";
-import CreateAccountModal from "./CreateAccountModal";
+
+const CreateAccountModal = dynamic(() => import("./CreateAccountModal"), {
+  ssr: false,
+  loading: () => <div className="h-10 w-36 bg-slate-200 animate-pulse rounded-xl" />,
+});
 
 export default async function AdminStudentsPage() {
   // Query all users (students and admins)

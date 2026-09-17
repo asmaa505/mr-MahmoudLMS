@@ -17,6 +17,10 @@ export default function CustomCursor() {
   const cursorYSpring = useSpring(cursorY, springConfig);
 
   useEffect(() => {
+    // Disable on mobile/touch devices to save main-thread JS execution
+    const isMobile = window.innerWidth < 1024 || window.matchMedia("(pointer: coarse)").matches;
+    if (isMobile) return;
+
     const moveCursor = (e: MouseEvent) => {
       cursorX.set(e.clientX - 10);
       cursorY.set(e.clientY - 10);

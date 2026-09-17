@@ -2,6 +2,7 @@ import React from "react";
 import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import Link from "next/link";
+import Image from "next/image";
 import UnlockForm from "./UnlockForm";
 import UnlockCourseButton from "./UnlockCourseButton";
 import { BookOpen, Lock, Unlock, Award, HelpCircle, Layers, Play, ChevronLeft } from "lucide-react";
@@ -102,7 +103,7 @@ export default async function StudentDashboardPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
-              {enrolledCourses.map((course) => {
+              {enrolledCourses.map((course, idx) => {
                 const totalLectures = course.chapters.reduce((acc, ch) => acc + ch.lectures.length, 0);
                 const totalQuizzes = course.chapters.reduce((acc, ch) => acc + ch.quizzes.length, 0);
 
@@ -114,10 +115,13 @@ export default async function StudentDashboardPage() {
                     {/* Compact Image Banner */}
                     <div className="relative h-28 w-full bg-slate-950 overflow-hidden">
                       {course.image ? (
-                        <img
+                        <Image
                           src={course.image}
                           alt={course.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                          fill
+                          priority={idx === 0}
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition duration-300"
                         />
                       ) : (
                         <div className="w-full h-full bg-slate-900 flex items-center justify-center text-physicsCyan-400 font-bold text-xs">
@@ -189,10 +193,12 @@ export default async function StudentDashboardPage() {
                     >
                       <div className="relative h-24 w-full bg-slate-900 overflow-hidden">
                         {course.image ? (
-                          <img
+                          <Image
                             src={course.image}
                             alt={course.title}
-                            className="w-full h-full object-cover grayscale-[20%]"
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-cover grayscale-[20%]"
                           />
                         ) : (
                           <div className="w-full h-full bg-slate-900 flex items-center justify-center text-physicsCyan-400 font-bold text-xs">

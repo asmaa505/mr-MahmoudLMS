@@ -2,9 +2,14 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import dynamic from "next/dynamic";
 import { BookOpen, ShieldCheck, GraduationCap, Trophy, HelpCircle, Layers, Sparkles, ChevronLeft } from "lucide-react";
-import LandingClientHelpers from "@/components/LandingClientHelpers";
 import FadeIn from "@/components/FadeIn";
+
+const LandingClientHelpers = dynamic(() => import("@/components/LandingClientHelpers"), {
+  ssr: false,
+});
 
 export default function LandingPage() {
   const [hoveredLinkText, setHoveredLinkText] = useState<string | null>(null);
@@ -100,10 +105,13 @@ export default function LandingPage() {
 
                   {/* The Hero Image */}
                   <div className="relative h-[420px] rounded-2xl overflow-hidden border border-physicsCyan-500/10 bg-slate-900 mb-4 z-10">
-                    <img
-                      src="/img.jpg" 
+                    <Image
+                      src="/img.jpg"
                       alt="الأستاذ محمود الشحات"
-                      className="w-full h-full object-cover object-[center_top] filter brightness-95 group-hover:scale-[1.02] transition duration-700"
+                      fill
+                      priority
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 420px"
+                      className="object-cover object-[center_top] filter brightness-95 group-hover:scale-[1.02] transition duration-700"
                     />
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none z-20" />
                   </div>

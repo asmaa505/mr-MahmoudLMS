@@ -3,9 +3,18 @@ import { getAuthUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import VideoPlayer from "@/components/VideoPlayer";
+import dynamic from "next/dynamic";
 import { headers } from "next/headers";
 import { Play, FileText, CheckCircle, AlertTriangle, ChevronRight, Lock, HelpCircle } from "lucide-react";
+
+const VideoPlayer = dynamic(() => import("@/components/VideoPlayer"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full aspect-video bg-slate-900 rounded-2xl animate-pulse flex items-center justify-center text-slate-500 text-xs">
+      جاري تحميل مشغل الفيديو...
+    </div>
+  ),
+});
 
 interface CoursePageProps {
   params: Promise<{ id: string }>;
