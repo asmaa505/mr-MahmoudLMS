@@ -3,6 +3,13 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { BookOpen, Plus, Play, FileText, ChevronLeft, FolderPlus, Film, FilePlus } from "lucide-react";
+import CourseHeaderActions, { DeleteChapterButton, DeleteLectureButton, DeleteHomeworkButton } from "./CourseHeaderActions";
+import {
+  CreateCourseForm,
+  AddChapterForm,
+  AddLectureForm,
+  AddHomeworkForm,
+} from "./CourseCreationForms";
 
 interface CoursesPageProps {
   searchParams: Promise<{ courseId?: string }>;
@@ -33,88 +40,6 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
       })
     : null;
 
-  // Server Actions
-  async function createCourseAction(formData: FormData) {
-    "use server";
-    const title = formData.get("title") as string;
-    const description = formData.get("description") as string;
-    const image = formData.get("image") as string;
-    const grade = formData.get("grade") as string;
-
-    if (title && grade) {
-      await db.course.create({
-        data: {
-          title,
-          description,
-          image: image || "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop",
-          grade,
-          isPublished: true,
-        },
-      });
-      revalidatePath("/admin/courses");
-    }
-  }
-
-  async function createChapterAction(formData: FormData) {
-    "use server";
-    const title = formData.get("title") as string;
-    const orderStr = formData.get("order") as string;
-    const courseId = formData.get("courseId") as string;
-
-    if (title && courseId) {
-      await db.chapter.create({
-        data: {
-          title,
-          order: parseInt(orderStr) || 1,
-          courseId,
-        },
-      });
-      revalidatePath(`/admin/courses?courseId=${courseId}`);
-    }
-  }
-
-  async function createLectureAction(formData: FormData) {
-    "use server";
-    const title = formData.get("title") as string;
-    const videoUrl = formData.get("videoUrl") as string;
-    const duration = formData.get("duration") as string;
-    const orderStr = formData.get("order") as string;
-    const chapterId = formData.get("chapterId") as string;
-    const courseId = formData.get("courseId") as string;
-
-    if (title && videoUrl && chapterId) {
-      await db.lecture.create({
-        data: {
-          title,
-          videoUrl,
-          duration: duration || "00:00",
-          order: parseInt(orderStr) || 1,
-          chapterId,
-        },
-      });
-      revalidatePath(`/admin/courses?courseId=${courseId}`);
-    }
-  }
-
-  async function createHomeworkAction(formData: FormData) {
-    "use server";
-    const title = formData.get("title") as string;
-    const pdfUrl = formData.get("pdfUrl") as string;
-    const chapterId = formData.get("chapterId") as string;
-    const courseId = formData.get("courseId") as string;
-
-    if (title && pdfUrl && chapterId) {
-      await db.homework.create({
-        data: {
-          title,
-          pdfUrl,
-          chapterId,
-        },
-      });
-      revalidatePath(`/admin/courses?courseId=${courseId}`);
-    }
-  }
-
   const getGradeName = (g: string) => {
     if (g === "1") return "الصف الأول الثانوي";
     if (g === "2") return "الصف الثاني الثانوي";
@@ -138,56 +63,7 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
               <span>إضافة كورس جديد</span>
             </h2>
 
-            <form action={createCourseAction} className="space-y-3 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-650 mb-1">اسم الكورس</label>
-                <input
-                  type="text"
-                  name="title"
-                  placeholder="مثال: التيار المتردد والفيزياء الحديثة"
-                  className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none text-right"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block font-semibold text-slate-650 mb-1">وصف تفصيلي</label>
-                <textarea
-                  name="description"
-                  placeholder="اكتب وصفاً موجزاً لمحتويات هذا الكورس الدراسي..."
-                  rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none text-right"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-650 mb-1">الصف الدراسي</label>
-                  <select
-                    name="grade"
-                    className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none cursor-pointer"
-                    required
-                  >
-                    <option value="1">الأول الثانوي</option>
-                    <option value="2">الثاني الثانوي</option>
-                    <option value="3">الثالث الثانوي</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-650 mb-1">رابط صورة الغلاف</label>
-                  <input
-                    type="text"
-                    name="image"
-                    placeholder="رابط الصورة (اختياري)"
-                    className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none text-left font-mono text-[10px]"
-                  />
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-physicsCyan-600 hover:bg-physicsCyan-500 text-white font-bold rounded-lg transition"
-              >
-                إنشاء الكورس
-              </button>
-            </form>
+            <CreateCourseForm />
           </div>
 
           {/* Courses List */}
@@ -232,11 +108,19 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
           {selectedCourse ? (
             <div className="space-y-6">
               {/* Course Header Info */}
-              <div className="bg-physicsNavy-900 text-white p-6 rounded-2xl shadow-sm border border-physicsNavy-800">
-                <span className="text-[10px] font-bold text-physicsCyan-400 uppercase tracking-wider block mb-1">
-                  {getGradeName(selectedCourse.grade)}
-                </span>
-                <h2 className="text-lg font-black">{selectedCourse.title}</h2>
+              <div className="bg-physicsNavy-900 text-white p-6 rounded-2xl shadow-sm border border-physicsNavy-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <span className="text-[10px] font-bold text-physicsCyan-400 uppercase tracking-wider block mb-1">
+                    {getGradeName(selectedCourse.grade)}
+                  </span>
+                  <h2 className="text-lg font-black">{selectedCourse.title}</h2>
+                  {selectedCourse.description && (
+                    <p className="text-physicsNavy-200 text-xs mt-1 max-w-lg leading-relaxed">
+                      {selectedCourse.description}
+                    </p>
+                  )}
+                </div>
+                <CourseHeaderActions course={selectedCourse} />
               </div>
 
               {/* Add Chapter Form */}
@@ -245,34 +129,10 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
                   <FolderPlus className="w-5 h-5 text-physicsCyan-600" />
                   <span>إضافة فصل جديد للكورس</span>
                 </h3>
-                <form action={createChapterAction} className="flex gap-3 text-xs">
-                  <input type="hidden" name="courseId" value={selectedCourse.id} />
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      name="title"
-                      placeholder="عنوان الفصل (مثال: الفصل الثاني: التأثير المغناطيسي للتيار)"
-                      className="w-full px-3 py-2.5 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none text-right"
-                      required
-                    />
-                  </div>
-                  <div className="w-20">
-                    <input
-                      type="number"
-                      name="order"
-                      placeholder="الترتيب"
-                      defaultValue={selectedCourse.chapters.length + 1}
-                      className="w-full px-3 py-2.5 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none text-center"
-                      required
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 bg-physicsCyan-600 hover:bg-physicsCyan-500 text-white font-bold rounded-lg transition shrink-0"
-                  >
-                    إضافة فصل
-                  </button>
-                </form>
+                <AddChapterForm
+                  courseId={selectedCourse.id}
+                  defaultOrder={selectedCourse.chapters.length + 1}
+                />
               </div>
 
               {/* Chapters list and contents */}
@@ -292,6 +152,7 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
                         <span className="font-bold text-slate-800">
                           {chapter.title} (الترتيب: {chapter.order})
                         </span>
+                        <DeleteChapterButton chapterId={chapter.id} courseId={selectedCourse.id} />
                       </div>
 
                       {/* Lectures & Homework lists inside Chapter */}
@@ -312,7 +173,10 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
                                     <Play className="w-3.5 h-3.5 text-physicsCyan-500" />
                                     <span className="font-semibold text-slate-750">{lec.title}</span>
                                   </span>
-                                  <span className="font-mono text-slate-400">{lec.duration}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-mono text-slate-400 text-[10px]">{lec.duration}</span>
+                                    <DeleteLectureButton lectureId={lec.id} courseId={selectedCourse.id} />
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -330,9 +194,12 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
                           ) : (
                             <div className="space-y-1 mr-2 text-[11px]">
                               {chapter.homeworks.map((hw) => (
-                                <div key={hw.id} className="flex items-center gap-1.5 py-1 text-slate-650">
-                                  <FileText className="w-3.5 h-3.5 text-red-500" />
-                                  <span className="font-semibold text-slate-750">{hw.title}</span>
+                                <div key={hw.id} className="flex justify-between items-center py-1 text-slate-650">
+                                  <div className="flex items-center gap-1.5">
+                                    <FileText className="w-3.5 h-3.5 text-red-500" />
+                                    <span className="font-semibold text-slate-750">{hw.title}</span>
+                                  </div>
+                                  <DeleteHomeworkButton homeworkId={hw.id} courseId={selectedCourse.id} />
                                 </div>
                               ))}
                             </div>
@@ -342,78 +209,16 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
 
                       {/* Content Creator Forms for this Chapter */}
                       <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 text-xs">
-                        {/* Add Lecture form */}
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 space-y-3">
-                          <h5 className="font-bold text-slate-800 text-[11px]">إضافة محاضرة مرئية</h5>
-                          <form action={createLectureAction} className="space-y-2">
-                            <input type="hidden" name="courseId" value={selectedCourse.id} />
-                            <input type="hidden" name="chapterId" value={chapter.id} />
-                            <input
-                              type="text"
-                              name="title"
-                              placeholder="عنوان المحاضرة"
-                              className="w-full px-2 py-1.5 border border-slate-200 focus:border-physicsCyan-500 rounded outline-none text-right"
-                              required
-                            />
-                            <input
-                              type="text"
-                              name="videoUrl"
-                              placeholder="رابط الفيديو (YouTube/Vimeo)"
-                              className="w-full px-2 py-1.5 border border-slate-200 focus:border-physicsCyan-500 rounded outline-none text-left font-mono text-[10px]"
-                              required
-                            />
-                            <div className="grid grid-cols-2 gap-2">
-                              <input
-                                type="text"
-                                name="duration"
-                                placeholder="المدة (مثال: 45:00)"
-                                className="w-full px-2 py-1.5 border border-slate-200 focus:border-physicsCyan-500 rounded outline-none text-center"
-                              />
-                              <input
-                                type="number"
-                                name="order"
-                                placeholder="الترتيب"
-                                defaultValue={chapter.lectures.length + 1}
-                                className="w-full px-2 py-1.5 border border-slate-200 focus:border-physicsCyan-500 rounded outline-none text-center"
-                              />
-                            </div>
-                            <button
-                              type="submit"
-                              className="w-full py-1.5 bg-physicsNavy-700 hover:bg-physicsNavy-800 text-white font-bold rounded transition text-[10px]"
-                            >
-                              إضافة المحاضرة
-                            </button>
-                          </form>
-                        </div>
+                        <AddLectureForm
+                          courseId={selectedCourse.id}
+                          chapterId={chapter.id}
+                          defaultOrder={chapter.lectures.length + 1}
+                        />
 
-                        {/* Add Homework PDF form */}
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 space-y-3">
-                          <h5 className="font-bold text-slate-800 text-[11px]">إضافة ملف ملخص / واجب PDF</h5>
-                          <form action={createHomeworkAction} className="space-y-2">
-                            <input type="hidden" name="courseId" value={selectedCourse.id} />
-                            <input type="hidden" name="chapterId" value={chapter.id} />
-                            <input
-                              type="text"
-                              name="title"
-                              placeholder="عنوان ملف الواجب"
-                              className="w-full px-2 py-1.5 border border-slate-200 focus:border-physicsCyan-500 rounded outline-none text-right"
-                              required
-                            />
-                            <input
-                              type="text"
-                              name="pdfUrl"
-                              placeholder="رابط تحميل ملف الـ PDF"
-                              className="w-full px-2 py-1.5 border border-slate-200 focus:border-physicsCyan-500 rounded outline-none text-left font-mono text-[10px]"
-                              required
-                            />
-                            <button
-                              type="submit"
-                              className="w-full py-1.5 bg-physicsNavy-700 hover:bg-physicsNavy-800 text-white font-bold rounded transition text-[10px]"
-                            >
-                              إضافة الملف
-                            </button>
-                          </form>
-                        </div>
+                        <AddHomeworkForm
+                          courseId={selectedCourse.id}
+                          chapterId={chapter.id}
+                        />
                       </div>
                     </div>
                   ))}

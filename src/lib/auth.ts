@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 import { db } from "./db";
 import { redirect } from "next/navigation";
 
-export const DISABLE_AUTH_FOR_DEV = process.env.NODE_ENV === "development";
 
 const JWT_SECRET = process.env.JWT_SECRET || "mahmoud-el-shahat-physics-lms-super-secret-key-2026";
 
@@ -48,30 +47,7 @@ export async function getCurrentUser(allowedRole?: "ADMIN" | "STUDENT") {
       }
     }
   } catch (e) {
-    // Ignore and fallback
-  }
-
-  if (DISABLE_AUTH_FOR_DEV) {
-    if (allowedRole === "STUDENT") {
-      return {
-        id: "dev-student-id",
-        name: "طالب تجريبي",
-        phone: "01000000000",
-        role: "STUDENT",
-        isApproved: true,
-        isBlocked: false,
-        grade: "3",
-      };
-    }
-    return {
-      id: "dev-admin-id",
-      name: "الأستاذ محمود الشحات (مطور)",
-      phone: "01000000000",
-      role: "ADMIN",
-      isApproved: true,
-      isBlocked: false,
-      grade: "3",
-    };
+    // Session lookup failed
   }
 
   return null;
@@ -92,29 +68,6 @@ export async function requireAuth(allowedRole?: "ADMIN" | "STUDENT") {
       }
     }
     return user;
-  }
-
-  if (DISABLE_AUTH_FOR_DEV) {
-    if (allowedRole === "STUDENT") {
-      return {
-        id: "dev-student-id",
-        name: "طالب تجريبي",
-        phone: "01000000000",
-        role: "STUDENT",
-        isApproved: true,
-        isBlocked: false,
-        grade: "3",
-      };
-    }
-    return {
-      id: "dev-admin-id",
-      name: "الأستاذ محمود الشحات (مطور)",
-      phone: "01000000000",
-      role: allowedRole || "ADMIN",
-      isApproved: true,
-      isBlocked: false,
-      grade: "3",
-    };
   }
 
   redirect("/login");

@@ -14,14 +14,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "بيانات ناقصة" }, { status: 400 });
     }
 
-    // 1. Fetch Quiz with Questions
+    // 1. Fetch Quiz with Questions and Chapter
     const quiz = await db.quiz.findUnique({
       where: { id: quizId },
-      include: { questions: true },
+      include: {
+        questions: true,
+        chapter: true,
+      },
     });
 
     if (!quiz) {
       return NextResponse.json({ error: "الاختبار غير موجود" }, { status: 404 });
+    }
+
+    // 2. Verify Student Enrollment in the Course
+    const enrollment = await db.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId: user.id,
+          courseId: quiz.chapter.courseId,
+        },
+      },
+    });
+
+    if (!enrollment) {
+      return NextResponse.json(
+        { error: "غير مصرح: يجب الاشتراك وتفعيل الكورس أولاً لتقديم هذا الاختبار" },
+        { status: 403 }
+      );
     }
 
     // 2. Grade MCQ Questions
@@ -53,6 +73,7 @@ export async function POST(request: NextRequest) {
       message: "تم تسليم الاختبار بنجاح",
       score,
       attemptId: attempt.id,
+      questions: quiz.questions,
     });
   } catch (error: any) {
     console.error("Quiz Submission Error:", error);

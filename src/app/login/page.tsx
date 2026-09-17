@@ -6,7 +6,7 @@ import Link from "next/link";
 import { BookOpen, Phone, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import AuthBackground from "@/components/AuthBackground";
 
-export default function LoginPage() {
+function LoginContent() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -136,5 +136,13 @@ export default function LoginPage() {
         </div>
       </div>
     </AuthBackground>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-slate-900" />}>
+      <LoginContent />
+    </React.Suspense>
   );
 }

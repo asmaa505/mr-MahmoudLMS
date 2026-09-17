@@ -34,3 +34,7 @@ yarn-error.log*
 # TypeScript
 tsconfig.tsbuildinfo
 node_modules/
+
+# Uploaded media files
+/public/uploads/
+

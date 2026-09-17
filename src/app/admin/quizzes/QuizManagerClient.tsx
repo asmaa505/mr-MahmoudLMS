@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import MathText from "@/components/MathText";
 import { Plus, HelpCircle, Eye, Loader2, BookOpenCheck, Settings2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import MediaUploadInput from "@/components/MediaUploadInput";
 
 interface Question {
   id: string;
@@ -326,21 +327,21 @@ export default function QuizManagerClient({ chapters, initialQuizzes }: QuizMana
                         <option value="WRITTEN">سؤال كتابي ومقالي</option>
                       </select>
                     </div>
-                    <div>
-                      <label className="block font-semibold text-slate-650 mb-1">رابط صورة توضيحية (diagram)</label>
-                      <input
-                        type="text"
-                        value={qImageUrl}
-                        onChange={(e) => setQImageUrl(e.target.value)}
-                        placeholder="أدخل رابط صورة المسألة إن وجد"
-                        className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none text-left font-mono"
-                      />
-                    </div>
+                  </div>
+
+                  <div>
+                    <MediaUploadInput
+                      mediaType="image"
+                      label="صورة توضيحية للمسألة "
+                      value={qImageUrl}
+                      onChange={(url) => setQImageUrl(url)}
+                      placeholder="أدخل رابط صورة المسألة أو ارفعها من جهازك (اختياري)"
+                    />
                   </div>
 
                   <div>
                     <label className="block font-semibold text-slate-650 mb-1">
-                      نص السؤال (يدعم معادلات الـ LaTeX مثل $E=mc^2$ أو $$\Delta V = I \cdot R$$)
+                      نص السؤال 
                     </label>
                     <textarea
                       value={qText}

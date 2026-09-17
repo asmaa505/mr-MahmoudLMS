@@ -47,11 +47,16 @@ interface QuizClientProps {
 
 export default function QuizClient({ quiz, user, pastAttempts }: QuizClientProps) {
   const [gameState, setGameState] = useState<"OVERVIEW" | "PLAYING" | "REVIEW">("OVERVIEW");
+  const [questionsList, setQuestionsList] = useState<Question[]>(quiz.questions);
   const [answers, setAnswers] = useState<Record<string, string | number>>({});
   const [timeLeft, setTimeLeft] = useState(quiz.duration * 60);
   const [loading, setLoading] = useState(false);
   const [activeReviewAttempt, setActiveReviewAttempt] = useState<Attempt | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    setQuestionsList(quiz.questions);
+  }, [quiz.questions]);
 
   // Active timer logic
   useEffect(() => {
@@ -86,6 +91,13 @@ export default function QuizClient({ quiz, user, pastAttempts }: QuizClientProps
   };
 
   const startQuiz = () => {
+    setQuestionsList((prev) =>
+      prev.map((q) => ({
+        ...q,
+        correctOption: null,
+        explanation: null,
+      }))
+    );
     setAnswers({});
     setTimeLeft(quiz.duration * 60);
     setGameState("PLAYING");
@@ -105,6 +117,10 @@ export default function QuizClient({ quiz, user, pastAttempts }: QuizClientProps
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+
+      if (data.questions) {
+        setQuestionsList(data.questions);
+      }
 
       // Trigger redirect or refresh to update pastAttempts, and show review of the new attempt
       router.refresh();
@@ -246,7 +262,7 @@ export default function QuizClient({ quiz, user, pastAttempts }: QuizClientProps
 
         {/* Questions list */}
         <div className="space-y-6">
-          {quiz.questions.map((question, qIdx) => {
+          {questionsList.map((question, qIdx) => {
             const questionOptions = question.options ? (JSON.parse(question.options) as string[]) : [];
 
             return (
@@ -421,7 +437,7 @@ export default function QuizClient({ quiz, user, pastAttempts }: QuizClientProps
         <div className="space-y-6">
           <h2 className="font-bold text-slate-800 text-sm">تفاصيل الأسئلة والإجابات النموذجية:</h2>
 
-          {quiz.questions.map((question, qIdx) => {
+          {questionsList.map((question, qIdx) => {
             const questionOptions = question.options ? (JSON.parse(question.options) as string[]) : [];
             const studentAns = studentAnswers[question.id];
 

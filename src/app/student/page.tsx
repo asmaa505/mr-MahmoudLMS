@@ -4,17 +4,25 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import UnlockForm from "./UnlockForm";
 import UnlockCourseButton from "./UnlockCourseButton";
-import { BookOpen, Lock, Unlock, GraduationCap, Award, HelpCircle, Layers, CheckCircle2 } from "lucide-react";
-import Image from "next/image";
+import { BookOpen, Lock, Unlock, Award, HelpCircle, Layers, Play, ChevronLeft } from "lucide-react";
 
 export default async function StudentDashboardPage() {
   const user = await requireAuth("STUDENT");
 
-  // 1. Fetch all published courses matching user's grade
+  // 1. Fetch all published courses matching user's grade with chapters & lectures
   const courses = await db.course.findMany({
     where: {
       isPublished: true,
       grade: user.grade,
+    },
+    include: {
+      chapters: {
+        include: {
+          lectures: true,
+          quizzes: true,
+          homeworks: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -27,6 +35,7 @@ export default async function StudentDashboardPage() {
 
   const enrolledCourseIds = new Set(enrollments.map((e) => e.courseId));
   const enrolledCourses = courses.filter((c) => enrolledCourseIds.has(c.id));
+  const otherAvailableCourses = courses.filter((c) => !enrolledCourseIds.has(c.id));
 
   // 3. Fetch student attempts stats
   const attempts = await db.quizAttempt.findMany({
@@ -75,7 +84,7 @@ export default async function StudentDashboardPage() {
         {/* Left: Courses Grid (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
           <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <Layers className="w-5 h-5 text-physicsNavy-600" />
               <span>مناهجك الدراسية المشتركة</span>
             </h2>
@@ -85,77 +94,134 @@ export default async function StudentDashboardPage() {
           </div>
 
           {enrolledCourses.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-slate-200/80">
-              <HelpCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 text-sm">
-                لم تشترك في أي كورسات بعد. يرجى إدخال كود التفعيل بالجانب لتفعيل كورس جديد والبدء في المذاكرة.
+            <div className="bg-white rounded-2xl p-8 text-center border border-slate-200/80 space-y-3">
+              <HelpCircle className="w-10 h-10 text-slate-300 mx-auto" />
+              <p className="text-slate-500 text-xs leading-relaxed">
+                لم تشترك في أي مناهج بعد. يرجى إدخال كود التفعيل بالجانب لتفعيل كورس جديد والبدء في المذاكرة.
               </p>
             </div>
           ) : (
-            <div className={`grid gap-6 ${enrolledCourses.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
               {enrolledCourses.map((course) => {
-                const isUnlocked = enrolledCourseIds.has(course.id);
+                const totalLectures = course.chapters.reduce((acc, ch) => acc + ch.lectures.length, 0);
+                const totalQuizzes = course.chapters.reduce((acc, ch) => acc + ch.quizzes.length, 0);
+
                 return (
                   <div
                     key={course.id}
-                    className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden flex flex-col hover:shadow-md transition group"
+                    className="bg-white rounded-xl border border-slate-200/85 hover:border-physicsCyan-500/60 shadow-xs hover:shadow-md transition flex flex-col overflow-hidden group text-right"
                   >
-                    {/* Course Banner Image */}
-                    <div className="relative aspect-video bg-slate-100">
+                    {/* Compact Image Banner */}
+                    <div className="relative h-28 w-full bg-slate-950 overflow-hidden">
                       {course.image ? (
                         <img
                           src={course.image}
                           alt={course.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         />
                       ) : (
-                        <div className="w-full h-full bg-slate-900 flex items-center justify-center text-physicsCyan-400 font-bold">
+                        <div className="w-full h-full bg-slate-900 flex items-center justify-center text-physicsCyan-400 font-bold text-xs">
                           \( \Phi \) Physics
                         </div>
                       )}
-                      {/* Unlock Tag */}
-                      <div className="absolute top-4 right-4 z-10 flex items-center justify-center">
-                        {isUnlocked ? (
-                          <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500 text-white font-bold text-[10px] rounded-full shadow-md border border-white/10">
-                            <Unlock className="w-3.5 h-3.5" />
-                            مفتوح
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-950/85 text-white font-bold text-[10px] rounded-full backdrop-blur-sm shadow-md border border-white/10">
-                            <Lock className="w-3.5 h-3.5 text-amber-400" />
-                            مغلق
-                          </span>
-                        )}
+
+                      {/* Top Unlocked Badge */}
+                      <div className="absolute top-2 right-2 z-10">
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/95 text-white font-bold text-[9px] rounded-full shadow-sm">
+                          <Unlock className="w-2.5 h-2.5" />
+                          <span>مشترك</span>
+                        </span>
                       </div>
                     </div>
 
-                    {/* Course Info */}
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                      <div className="space-y-2">
-                        <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2">
+                    {/* Compact Card Content */}
+                    <div className="p-3 flex-1 flex flex-col justify-between space-y-2.5">
+                      <div className="space-y-1">
+                        <h3 className="font-bold text-slate-800 text-xs leading-snug line-clamp-1 group-hover:text-physicsCyan-600 transition">
                           {course.title}
                         </h3>
-                        <p className="text-slate-500 text-xs line-clamp-3 leading-relaxed">
+                        <p className="text-slate-500 text-[10px] line-clamp-1 leading-normal">
                           {course.description || "لا يوجد وصف متوفر لهذا الكورس."}
                         </p>
                       </div>
 
-                      <div className="pt-2">
-                        {isUnlocked ? (
-                          <Link
-                            href={`/student/course/${course.id}`}
-                            className="inline-flex w-full justify-center items-center py-2.5 bg-physicsNavy-700 hover:bg-physicsNavy-800 text-white text-xs font-bold rounded-xl transition"
-                          >
-                            ادخل للدراسة
-                          </Link>
-                        ) : (
-                          <UnlockCourseButton />
-                        )}
+                      {/* Meta Stats: Lectures & Quizzes count */}
+                      <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1.5 border-t border-slate-100">
+                        <span className="flex items-center gap-1 text-slate-650 font-medium">
+                          <Play className="w-3 h-3 text-physicsCyan-500" />
+                          <span>{totalLectures} محاضرة</span>
+                        </span>
+                        <span className="flex items-center gap-1 text-slate-650 font-medium">
+                          <BookOpen className="w-3 h-3 text-indigo-500" />
+                          <span>{course.chapters.length} فصول</span>
+                        </span>
                       </div>
+
+                      {/* Action Button */}
+                      <Link
+                        href={`/student/course/${course.id}`}
+                        className="w-full py-1.5 px-3 bg-physicsNavy-700 hover:bg-physicsNavy-800 text-white text-[11px] font-bold rounded-lg transition flex items-center justify-center gap-1 shadow-xs"
+                      >
+                        <span>ادخل للدراسة</span>
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </Link>
                     </div>
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Other Available Courses in the Same Grade */}
+          {otherAvailableCourses.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-slate-200/70">
+              <h3 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-amber-500" />
+                <span>مناهج أخرى متاحة للتفعيل لصفك الدراسي</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
+                {otherAvailableCourses.map((course) => {
+                  const totalLectures = course.chapters.reduce((acc, ch) => acc + ch.lectures.length, 0);
+                  return (
+                    <div
+                      key={course.id}
+                      className="bg-white rounded-xl border border-slate-200/85 hover:border-slate-300 shadow-xs transition flex flex-col overflow-hidden text-right opacity-95"
+                    >
+                      <div className="relative h-24 w-full bg-slate-900 overflow-hidden">
+                        {course.image ? (
+                          <img
+                            src={course.image}
+                            alt={course.title}
+                            className="w-full h-full object-cover grayscale-[20%]"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-slate-900 flex items-center justify-center text-physicsCyan-400 font-bold text-xs">
+                            \( \Phi \) Physics
+                          </div>
+                        )}
+                        <div className="absolute top-2 right-2 z-10">
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-slate-950/85 text-amber-300 font-bold text-[9px] rounded-full backdrop-blur-sm shadow-sm">
+                            <Lock className="w-2.5 h-2.5" />
+                            <span>مغلق</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-xs line-clamp-1">
+                            {course.title}
+                          </h4>
+                          <span className="text-[10px] text-slate-500 mt-0.5 block">
+                            {totalLectures} محاضرة • {course.chapters.length} فصول
+                          </span>
+                        </div>
+                        <UnlockCourseButton className="py-1 text-[10px]" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

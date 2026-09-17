@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { sanitizePayload } from "@/lib/sanitize";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "127.0.0.1";
+    const limiter = rateLimit(ip, 10, 60000); // 10 registrations per minute limit
+    if (!limiter.success) {
+      return NextResponse.json(
+        { error: "تم تجاوز الحد المسموح به من الطلبات. يرجى المحاولة لاحقاً." },
+        { status: 429 }
+      );
+    }
+
     const { name, phone, password, grade } = await request.json();
 
     if (!name || !phone || !password || !grade) {

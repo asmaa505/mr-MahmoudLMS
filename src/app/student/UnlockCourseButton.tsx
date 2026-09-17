@@ -2,7 +2,7 @@
 
 import React from "react";
 
-export default function UnlockCourseButton() {
+export default function UnlockCourseButton({ className = "" }: { className?: string }) {
   const handleClick = () => {
     // 1. Find the input
     const input = document.getElementById("activation-code-input") as HTMLInputElement;
@@ -31,9 +31,9 @@ export default function UnlockCourseButton() {
   return (
     <button
       onClick={handleClick}
-      className="inline-flex w-full justify-center items-center py-2.5 bg-slate-100 text-slate-500 hover:bg-physicsCyan-50 hover:text-physicsCyan-600 text-xs font-bold rounded-xl border border-dashed border-slate-200 cursor-pointer transition-all duration-350 text-center focus:outline-none focus:ring-2 focus:ring-physicsCyan-500/40"
+      className={`inline-flex w-full justify-center items-center py-1.5 px-2 bg-slate-100 text-slate-500 hover:bg-physicsCyan-50 hover:text-physicsCyan-600 text-[11px] font-bold rounded-lg border border-dashed border-slate-200 cursor-pointer transition-all duration-350 text-center focus:outline-none focus:ring-2 focus:ring-physicsCyan-500/40 ${className}`}
     >
-      أدخل كود التفعيل بالجانب لفتحه
+      أدخل كود التفعيل لفتحه
     </button>
   );
 }

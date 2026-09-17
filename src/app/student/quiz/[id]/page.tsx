@@ -55,9 +55,21 @@ export default async function StudentQuizPage({ params }: QuizPageProps) {
     orderBy: { submittedAt: "desc" },
   });
 
+  // Security: Do not expose correct answers or explanations to active test takers
+  const sanitizedQuiz = {
+    ...quiz,
+    questions: pastAttempts.length > 0
+      ? quiz.questions
+      : quiz.questions.map((q) => ({
+          ...q,
+          correctOption: null,
+          explanation: null,
+        })),
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
-      <QuizClient quiz={quiz} user={user} pastAttempts={pastAttempts} />
+      <QuizClient quiz={sanitizedQuiz} user={user} pastAttempts={pastAttempts} />
     </div>
   );
 }

@@ -133,11 +133,19 @@ export default async function StudentCoursePage({ params, searchParams }: Course
                   );
                 }
 
-                // If unlocked, render watermark video player
+                // If unlocked, render secure watermark video player
+                const isExternalEmbed =
+                  activeLecture.videoUrl.includes("youtube.com") ||
+                  activeLecture.videoUrl.includes("youtu.be") ||
+                  activeLecture.videoUrl.includes("vimeo.com");
+                const secureVideoUrl = isExternalEmbed
+                  ? activeLecture.videoUrl
+                  : `/api/video/stream?lectureId=${activeLecture.id}`;
+
                 return (
                   <div className="space-y-4">
                     <VideoPlayer
-                      videoUrl={activeLecture.videoUrl}
+                      videoUrl={secureVideoUrl}
                       studentName={user.name}
                       studentPhone={user.phone}
                       studentIp={studentIp}
@@ -250,7 +258,7 @@ export default async function StudentCoursePage({ params, searchParams }: Course
                               </div>
                             ) : (
                               <a
-                                href={hw.pdfUrl}
+                                href={`/api/document/download?homeworkId=${hw.id}`}
                                 download
                                 className="flex items-center gap-2 text-xs text-slate-700 py-1.5 hover:text-physicsCyan-600 transition"
                               >

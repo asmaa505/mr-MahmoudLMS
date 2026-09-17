@@ -1,9 +1,11 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export async function approveStudentAction(formData: FormData) {
+  await requireAuth("ADMIN");
   const id = formData.get("studentId") as string;
   if (id) {
     await db.user.update({
@@ -15,6 +17,7 @@ export async function approveStudentAction(formData: FormData) {
 }
 
 export async function blockStudentAction(formData: FormData) {
+  await requireAuth("ADMIN");
   const id = formData.get("studentId") as string;
   const isBlocked = formData.get("isBlocked") === "true";
   if (id) {
@@ -31,6 +34,7 @@ export async function blockStudentAction(formData: FormData) {
 }
 
 export async function resetSessionsAction(formData: FormData) {
+  await requireAuth("ADMIN");
   const id = formData.get("studentId") as string;
   if (id) {
     await db.session.deleteMany({
@@ -41,6 +45,7 @@ export async function resetSessionsAction(formData: FormData) {
 }
 
 export async function deleteStudentAction(formData: FormData) {
+  await requireAuth("ADMIN");
   const id = formData.get("studentId") as string;
   if (id) {
     await db.user.delete({
