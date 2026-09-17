@@ -1,20 +1,21 @@
 import React from "react";
 import { db } from "@/lib/db";
-import { Check, X, ShieldAlert, ShieldCheck, RefreshCw, AlertTriangle, GraduationCap } from "lucide-react";
+import { Check, ShieldAlert, ShieldCheck, RefreshCw } from "lucide-react";
 import { approveStudentAction, blockStudentAction, resetSessionsAction } from "./actions";
 import DeleteStudentForm from "./DeleteStudentForm";
+import CreateAccountModal from "./CreateAccountModal";
 
 export default async function AdminStudentsPage() {
-  // Query all students
-  const students = await db.user.findMany({
-    where: { role: "STUDENT" },
+  // Query all users (students and admins)
+  const users = await db.user.findMany({
     include: {
       sessions: true,
     },
     orderBy: { createdAt: "desc" },
   });
 
-  const getGradeName = (g: string) => {
+  const getGradeName = (g: string, role: string) => {
+    if (role === "ADMIN") return "حساب مسؤول (أدمن)";
     if (g === "1") return "الصف الأول الثانوي";
     if (g === "2") return "الصف الثاني الثانوي";
     return "الصف الثالث الثانوي";
@@ -22,39 +23,49 @@ export default async function AdminStudentsPage() {
 
   return (
     <div className="space-y-6 text-right">
-      <div>
-        <h1 className="text-xl md:text-2xl font-black text-slate-800">إدارة حسابات الطلاب</h1>
-        <p className="text-xs text-slate-500 mt-1">تفعيل تسجيلات الطلاب الجدد، حظر أو فك حظر الطلاب، وإعادة تعيين أجهزة تسجيل الدخول النشطة.</p>
+      <div className="flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h1 className="text-xl md:text-2xl font-black text-slate-800">إدارة حسابات المنصة</h1>
+          <p className="text-xs text-slate-500 mt-1">تفعيل الطلاب والمسؤولين، إضافة حسابات جديدة، حظر أو فك حظر الحسابات، وتفريغ الأجهزة.</p>
+        </div>
+        <CreateAccountModal />
       </div>
 
       <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
-        {students.length === 0 ? (
-          <p className="text-slate-400 text-xs py-6 text-center">لا يوجد طلاب مسجلون بالمنصة بعد.</p>
+        {users.length === 0 ? (
+          <p className="text-slate-400 text-xs py-6 text-center">لا يوجد حسابات مسجلة بالمنصة بعد.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-right border-collapse">
               <thead>
                 <tr className="border-b border-slate-100 text-slate-400 font-bold">
-                  <th className="pb-3 pt-1 pl-4 font-semibold">اسم الطالب</th>
+                  <th className="pb-3 pt-1 pl-4 font-semibold">الاسم</th>
                   <th className="pb-3 pt-1 px-4 font-semibold">رقم الهاتف</th>
-                  <th className="pb-3 pt-1 px-4 font-semibold">الصف الدراسي</th>
+                  <th className="pb-3 pt-1 px-4 font-semibold">نوع الحساب / الصف</th>
                   <th className="pb-3 pt-1 px-4 font-semibold text-center">حالة الحساب</th>
                   <th className="pb-3 pt-1 px-4 font-semibold text-center">الجلسات النشطة</th>
                   <th className="pb-3 pt-1 pr-4 font-semibold text-left">إجراءات التحكم</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {students.map((student) => (
-                  <tr key={student.id} className="hover:bg-slate-50/50 transition">
-                    <td className="py-4 pl-4 font-bold text-slate-700">{student.name}</td>
-                    <td className="py-4 px-4 text-slate-500 font-mono">{student.phone}</td>
-                    <td className="py-4 px-4 text-slate-500">{getGradeName(student.grade)}</td>
+                {users.map((userItem) => (
+                  <tr key={userItem.id} className="hover:bg-slate-50/50 transition">
+                    <td className="py-4 pl-4 font-bold text-slate-700 flex items-center gap-2">
+                      <span>{userItem.name}</span>
+                      {userItem.role === "ADMIN" && (
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300/60 rounded-md text-[10px] font-black">
+                          أدمن
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-4 px-4 text-slate-500 font-mono">{userItem.phone}</td>
+                    <td className="py-4 px-4 text-slate-500">{getGradeName(userItem.grade, userItem.role)}</td>
                     <td className="py-4 px-4 text-center">
-                      {!student.isApproved ? (
+                      {!userItem.isApproved ? (
                         <span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md font-bold">
                           انتظار الموافقة
                         </span>
-                      ) : student.isBlocked ? (
+                      ) : userItem.isBlocked ? (
                         <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-md font-bold">
                           محظور
                         </span>
@@ -65,18 +76,18 @@ export default async function AdminStudentsPage() {
                       )}
                     </td>
                     <td className="py-4 px-4 text-center font-mono">
-                      {student.sessions.length > 0 ? (
-                        <span className="text-emerald-600 font-bold">{student.sessions.length} جهاز متصل</span>
+                      {userItem.sessions.length > 0 ? (
+                        <span className="text-emerald-600 font-bold">{userItem.sessions.length} جهاز متصل</span>
                       ) : (
                         <span className="text-slate-400">لا يوجد أجهزة</span>
                       )}
                     </td>
                     <td className="py-4 pr-4 text-left">
                       <div className="flex gap-2 justify-end items-center flex-wrap">
-                        {/* Session Reset (Limit Bypass) */}
-                        {student.sessions.length > 0 && (
+                        {/* Session Reset */}
+                        {userItem.sessions.length > 0 && (
                           <form action={resetSessionsAction}>
-                            <input type="hidden" name="studentId" value={student.id} />
+                            <input type="hidden" name="studentId" value={userItem.id} />
                             <button
                               type="submit"
                               title="تسجيل خروج من جميع الأجهزة النشطة"
@@ -88,10 +99,10 @@ export default async function AdminStudentsPage() {
                         )}
 
                         {/* Approvals */}
-                        {!student.isApproved ? (
+                        {!userItem.isApproved ? (
                           <>
                             <form action={approveStudentAction}>
-                              <input type="hidden" name="studentId" value={student.id} />
+                              <input type="hidden" name="studentId" value={userItem.id} />
                               <button
                                 type="submit"
                                 title="تفعيل وقبول الحساب"
@@ -101,23 +112,23 @@ export default async function AdminStudentsPage() {
                                 <span>موافقة</span>
                               </button>
                             </form>
-                            <DeleteStudentForm studentId={student.id} />
+                            <DeleteStudentForm studentId={userItem.id} />
                           </>
                         ) : (
                           <>
                             {/* Block Toggle */}
                             <form action={blockStudentAction}>
-                              <input type="hidden" name="studentId" value={student.id} />
-                              <input type="hidden" name="isBlocked" value={String(student.isBlocked)} />
+                              <input type="hidden" name="studentId" value={userItem.id} />
+                              <input type="hidden" name="isBlocked" value={String(userItem.isBlocked)} />
                               <button
                                 type="submit"
                                 className={`px-2.5 py-1.5 rounded-lg font-bold text-[10px] transition flex items-center gap-1 ${
-                                  student.isBlocked
+                                  userItem.isBlocked
                                     ? "bg-slate-100 text-slate-700 hover:bg-emerald-50 text-emerald-700 hover:border-emerald-250 border border-slate-200"
                                     : "bg-red-50 border border-red-150 text-red-700 hover:bg-red-500 hover:text-white"
                                 }`}
                               >
-                                {student.isBlocked ? (
+                                {userItem.isBlocked ? (
                                   <>
                                     <ShieldCheck className="w-3.5 h-3.5" />
                                     <span>فك الحظر</span>

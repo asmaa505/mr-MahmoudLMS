@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { sendWhatsAppNotification, WhatsAppTemplates } from "@/lib/whatsapp";
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,11 +70,20 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // 4. Generate WhatsApp notification link & dispatch
+    const waMessage = WhatsAppTemplates.quizGrade(user.name, quiz.title, Math.round(score), quiz.passingScore);
+    const waResult = await sendWhatsAppNotification({
+      phone: user.phone,
+      message: waMessage,
+      type: "QUIZ_GRADE",
+    });
+
     return NextResponse.json({
       message: "تم تسليم الاختبار بنجاح",
       score,
       attemptId: attempt.id,
       questions: quiz.questions,
+      whatsapp: waResult,
     });
   } catch (error: any) {
     console.error("Quiz Submission Error:", error);

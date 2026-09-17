@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { KeyRound, Plus, HelpCircle, Loader2, Clipboard, Check, Filter } from "lucide-react";
+import { KeyRound, Plus, HelpCircle, Loader2, Clipboard, Check, Filter, MessageSquare, X, UserCheck, Send, ShieldAlert, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getWhatsAppDirectLink, WhatsAppTemplates } from "@/lib/whatsapp";
 
 interface Course {
   id: string;
@@ -19,13 +20,20 @@ interface Lecture {
   };
 }
 
+interface Student {
+  id: string;
+  name: string;
+  phone: string;
+}
+
 interface CodesClientProps {
   courses: Course[];
   lectures: Lecture[];
+  students: Student[];
   initialCodes: any[];
 }
 
-export default function CodesClient({ courses, lectures, initialCodes }: CodesClientProps) {
+export default function CodesClient({ courses, lectures, students, initialCodes }: CodesClientProps) {
   const [codes, setCodes] = useState<any[]>(initialCodes);
   const [scope, setScope] = useState<"COURSE" | "LECTURE">("COURSE");
   const [selectedCourseId, setSelectedCourseId] = useState(courses.length > 0 ? courses[0].id : "");
@@ -34,10 +42,16 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
   const [count, setCount] = useState("5");
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [assignLoading, setAssignLoading] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterUsed, setFilterUsed] = useState<"ALL" | "USED" | "UNUSED">("ALL");
+  const [filterUsed, setFilterUsed] = useState<"ALL" | "USED" | "ASSIGNED" | "UNUSED">("ALL");
+
+  // WhatsApp Modal State for unassigned code
+  const [selectedCodeForWhatsApp, setSelectedCodeForWhatsApp] = useState<any | null>(null);
+  const [targetStudentId, setTargetStudentId] = useState<string>(students[0]?.id || "");
+  const [customPhone, setCustomPhone] = useState<string>("");
 
   const router = useRouter();
 
@@ -63,9 +77,7 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      // We refresh the page to pull the fully populated list of codes with student names
       router.refresh();
-      // Temporarily append locally (without relations for quick response)
       setCodes((prev) => [...data.codes, ...prev]);
       alert(data.message);
     } catch (e: any) {
@@ -81,11 +93,109 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Filter codes
+  const openWhatsAppAction = (codeObj: any) => {
+    const targetName = codeObj.course?.title || codeObj.lecture?.title || "الكورس";
+
+    if (codeObj.isUsed && codeObj.studentPhone) {
+      // Direct WhatsApp link for student who already used it
+      const message = WhatsAppTemplates.activationCode(codeObj.studentName || "الطالب", targetName, codeObj.code);
+      const link = getWhatsAppDirectLink(codeObj.studentPhone, message);
+      window.open(link, "_blank");
+    } else if (codeObj.assignedStudentPhone) {
+      // Direct WhatsApp link for student assigned to this code
+      const message = WhatsAppTemplates.activationCode(codeObj.assignedStudentName || "الطالب", targetName, codeObj.code);
+      const link = getWhatsAppDirectLink(codeObj.assignedStudentPhone, message);
+      window.open(link, "_blank");
+    } else {
+      // Open selector modal for unassigned code
+      setSelectedCodeForWhatsApp(codeObj);
+      if (students.length > 0) {
+        setTargetStudentId(students[0].id);
+        setCustomPhone(students[0].phone);
+      }
+    }
+  };
+
+  const handleSendAndAssignWhatsApp = async () => {
+    if (!selectedCodeForWhatsApp) return;
+
+    setAssignLoading(true);
+    const targetName = selectedCodeForWhatsApp.course?.title || selectedCodeForWhatsApp.lecture?.title || "الكورس";
+    const selectedStudent = students.find((s) => s.id === targetStudentId);
+    const destinationPhone = selectedStudent ? selectedStudent.phone : customPhone;
+    const destinationName = selectedStudent ? selectedStudent.name : "الطالب";
+
+    if (!destinationPhone) {
+      alert("يرجى اختيار طالب أو إدخال رقم هاتف صالح");
+      setAssignLoading(false);
+      return;
+    }
+
+    try {
+      // Call API to persist assignment in DB if student selected
+      if (selectedStudent) {
+        const res = await fetch("/api/admin/codes/assign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            codeId: selectedCodeForWhatsApp.id,
+            studentId: selectedStudent.id,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          // Update local state
+          setCodes((prev) =>
+            prev.map((c) =>
+              c.id === selectedCodeForWhatsApp.id
+                ? {
+                    ...c,
+                    assignedToId: selectedStudent.id,
+                    assignedStudentName: selectedStudent.name,
+                    assignedStudentPhone: selectedStudent.phone,
+                  }
+                : c
+            )
+          );
+        }
+      }
+
+      // Generate WhatsApp link and open chat
+      const message = WhatsAppTemplates.activationCode(destinationName, targetName, selectedCodeForWhatsApp.code);
+      const link = getWhatsAppDirectLink(destinationPhone, message);
+      window.open(link, "_blank");
+
+      setSelectedCodeForWhatsApp(null);
+    } catch (err: any) {
+      alert("حدث خطأ أثناء تخصيص الكود: " + err.message);
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
+  // Filter codes with enhanced search (Code, Course, Student Name, Student Phone)
   const filteredCodes = codes.filter((c) => {
-    const matchesSearch = c.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const sTerm = searchTerm.trim().toLowerCase();
+
+    const matchesSearch =
+      !sTerm ||
+      c.code.toLowerCase().includes(sTerm) ||
+      (c.course?.title || "").toLowerCase().includes(sTerm) ||
+      (c.lecture?.title || "").toLowerCase().includes(sTerm) ||
+      (c.studentName || "").toLowerCase().includes(sTerm) ||
+      (c.studentPhone || "").includes(sTerm) ||
+      (c.assignedStudentName || "").toLowerCase().includes(sTerm) ||
+      (c.assignedStudentPhone || "").includes(sTerm);
+
     const matchesUsed =
-      filterUsed === "ALL" ? true : filterUsed === "USED" ? c.isUsed : !c.isUsed;
+      filterUsed === "ALL"
+        ? true
+        : filterUsed === "USED"
+        ? c.isUsed
+        : filterUsed === "ASSIGNED"
+        ? !c.isUsed && (!!c.assignedToId || !!c.assignedStudentName)
+        : !c.isUsed && !c.assignedToId && !c.assignedStudentName;
+
     return matchesSearch && matchesUsed;
   });
 
@@ -94,7 +204,7 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
       <div>
         <h1 className="text-xl md:text-2xl font-black text-slate-800">أكواد التفعيل والاشتراكات</h1>
         <p className="text-xs text-slate-500 mt-1">
-          توليد بطاقات تفعيل للطلاب لفتح فصول أو محاضرات معينة لمشاهدة الفيديوهات وتنزيل ملخصات الدروس.
+          توليد وتخصيص بطاقات تفعيل للطلاب بالاسم ورقم التليفون لفتح الكورسات والمحاضرات ومنع تكرار الإرسال.
         </p>
       </div>
 
@@ -143,8 +253,7 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
                     <select
                       value={selectedCourseId}
                       onChange={(e) => setSelectedCourseId(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none cursor-pointer"
-                      required
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-physicsCyan-500"
                     >
                       {courses.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -159,18 +268,17 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
                   <label className="block font-semibold text-slate-650 mb-1">اختر المحاضرة</label>
                   {lectures.length === 0 ? (
                     <p className="text-[10px] text-red-500 bg-red-50 p-2.5 rounded border border-red-100">
-                      الرجاء إضافة محاضرات أولاً في الكورسات.
+                      الرجاء إضافة محاضرة أولاً.
                     </p>
                   ) : (
                     <select
                       value={selectedLectureId}
                       onChange={(e) => setSelectedLectureId(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none cursor-pointer"
-                      required
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-physicsCyan-500"
                     >
                       {lectures.map((l) => (
                         <option key={l.id} value={l.id}>
-                          [{l.chapter.course.title}] - {l.title}
+                          {l.title} ({l.chapter.course.title})
                         </option>
                       ))}
                     </select>
@@ -184,10 +292,9 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
                   <input
                     type="text"
                     value={prefix}
-                    onChange={(e) => setPrefix(e.target.value)}
-                    placeholder="مثال: PHY-MECH"
-                    className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none text-center font-mono"
-                    required
+                    onChange={(e) => setPrefix(e.target.value.toUpperCase())}
+                    maxLength={6}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-center focus:outline-none focus:border-physicsCyan-500 uppercase"
                   />
                 </div>
                 <div>
@@ -195,72 +302,74 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
                   <select
                     value={count}
                     onChange={(e) => setCount(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none cursor-pointer"
-                    required
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-physicsCyan-500"
                   >
                     <option value="1">1 كود</option>
                     <option value="5">5 أكواد</option>
                     <option value="10">10 أكواد</option>
                     <option value="20">20 كود</option>
-                    <option value="50">50 كود (أقصى حد)</option>
+                    <option value="50">50 كود</option>
                   </select>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading || (scope === "COURSE" && courses.length === 0) || (scope === "LECTURE" && lectures.length === 0)}
-                className="w-full py-2.5 bg-physicsCyan-600 hover:bg-physicsCyan-500 text-white font-bold rounded-lg transition flex justify-center items-center gap-1.5 disabled:opacity-60"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>توليد الأكواد</span>}
-              </button>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-physicsCyan-600 hover:bg-physicsCyan-500 text-white font-bold rounded-xl transition shadow-md shadow-physicsCyan-500/10 flex justify-center items-center gap-2 disabled:opacity-50"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>توليد الأكواد</span>}
+                </button>
+              </div>
             </form>
           </div>
         </div>
 
-        {/* Right Column (7 cols): Activation Codes List */}
-        <div className="lg:col-span-7 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
-          {/* Search and Filters */}
-          <div className="flex justify-between items-center flex-wrap gap-4 border-b border-slate-100 pb-4 text-xs">
+        {/* Right Column (7 cols): Codes List */}
+        <div className="lg:col-span-7 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-3">
             <h2 className="font-bold text-slate-800 text-sm flex items-center gap-2">
               <KeyRound className="w-5 h-5 text-physicsCyan-600" />
               <span>الأكواد الحالية ({filteredCodes.length})</span>
             </h2>
 
-            <div className="flex gap-2 items-center">
-              <div className="flex items-center gap-1 border border-slate-200 px-2 py-1.5 rounded-lg bg-slate-50">
-                <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 bg-slate-50 p-1 border border-slate-200 rounded-xl">
+                <Filter className="w-3.5 h-3.5 text-slate-400 mr-1" />
                 <select
                   value={filterUsed}
-                  onChange={(e: any) => setFilterUsed(e.target.value)}
-                  className="bg-transparent outline-none cursor-pointer text-slate-600 font-semibold"
+                  onChange={(e) => setFilterUsed(e.target.value as any)}
+                  className="bg-transparent text-[11px] font-semibold text-slate-700 outline-none"
                 >
-                  <option value="ALL">كل الأكواد</option>
-                  <option value="USED">المستخدمة فقط</option>
-                  <option value="UNUSED">النشطة غير المستخدمة</option>
+                  <option value="ALL">جميع الأكواد</option>
+                  <option value="USED">تم التفعيل بواسطة طالب</option>
+                  <option value="ASSIGNED">مخصصة لطالب (مرسلة)</option>
+                  <option value="UNUSED">متاحة وغير مخصصة</option>
                 </select>
               </div>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="ابحث بكتابة الكود..."
-                className="px-3 py-1.5 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none font-mono text-[10px] text-left"
+                placeholder="ابحث بالكود، اسم الطالب، أو رقم التليفون..."
+                className="px-3 py-1.5 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none font-mono text-[10px] text-right w-48 sm:w-60"
               />
             </div>
           </div>
 
           {filteredCodes.length === 0 ? (
-            <p className="text-slate-400 text-xs py-6 text-center">لا توجد أكواد مطابقة لخيارات التصفية.</p>
+            <p className="text-slate-400 text-xs py-6 text-center">لا توجد أكواد مطابقة لخيارات التصفية والبحث.</p>
           ) : (
             <div className="overflow-x-auto text-[11px]">
               <table className="w-full text-right border-collapse">
                 <thead>
                   <tr className="border-b border-slate-100 text-slate-400 font-bold">
                     <th className="pb-3 pt-1 pl-4 font-semibold text-center">الكود</th>
-                    <th className="pb-3 pt-1 px-4 font-semibold">يفتح كورس / محاضرة</th>
-                    <th className="pb-3 pt-1 px-4 font-semibold text-center">الحالة</th>
-                    <th className="pb-3 pt-1 pr-4 font-semibold text-left">المستخدم</th>
+                    <th className="pb-3 pt-1 px-4 font-semibold">المحتوى التعليمي</th>
+                    <th className="pb-3 pt-1 px-4 font-semibold text-center">حالة الكود والتمريض</th>
+                    <th className="pb-3 pt-1 px-4 font-semibold">الطالب المخصص / المستخدم</th>
+                    <th className="pb-3 pt-1 pr-4 font-semibold text-left">الواتساب</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -285,34 +394,60 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
                             <span>{c.code}</span>
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 max-w-[200px] truncate" title={targetName}>
+                        <td className="py-3.5 px-4 max-w-[180px] truncate" title={targetName}>
                           <span className="font-bold text-slate-700 block truncate">{targetName}</span>
                           <span className="text-[9px] text-slate-400 block mt-0.5">
-                            {isCourse ? "نطاق: كورس كامل" : "نطاق: محاضرة منفردة"}
+                            {isCourse ? "كورس كامل" : "محاضرة منفردة"}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           {c.isUsed ? (
-                            <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded font-bold">
+                            <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-md font-bold">
                               تم التفعيل
                             </span>
+                          ) : c.assignedStudentName ? (
+                            <span className="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200/60 rounded-md font-bold">
+                              مخصص مرسل
+                            </span>
                           ) : (
-                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded font-bold">
-                              نشط وصالح
+                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md font-bold">
+                              متاح وغير مخصص
                             </span>
                           )}
                         </td>
-                        <td className="py-3.5 pr-4 text-left">
+                        <td className="py-3.5 px-4">
                           {c.isUsed ? (
                             <div>
-                              <p className="font-bold text-slate-750">{c.studentName}</p>
-                              <p className="text-[9px] text-slate-400 mt-0.5">
-                                {c.usedAt ? new Date(c.usedAt).toLocaleDateString("ar-EG") : ""}
+                              <p className="font-bold text-slate-800 flex items-center gap-1">
+                                <span>{c.studentName}</span>
                               </p>
+                              <p className="text-[9px] text-slate-500 font-mono mt-0.5">{c.studentPhone}</p>
+                            </div>
+                          ) : c.assignedStudentName ? (
+                            <div>
+                              <p className="font-bold text-amber-900 flex items-center gap-1">
+                                <span>{c.assignedStudentName}</span>
+                              </p>
+                              <p className="text-[9px] text-amber-700 font-mono mt-0.5">{c.assignedStudentPhone}</p>
                             </div>
                           ) : (
-                            <span className="text-slate-350">متاح للاستخدام</span>
+                            <span className="text-slate-350">غير مخصص بعد</span>
                           )}
+                        </td>
+                        <td className="py-3.5 pr-4 text-left">
+                          <button
+                            onClick={() => openWhatsAppAction(c)}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold rounded-xl text-[10px] transition shadow-sm ${
+                              c.isUsed
+                                ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                : c.assignedStudentName
+                                ? "bg-amber-600 hover:bg-amber-500 text-white"
+                                : "bg-emerald-600 hover:bg-emerald-500 text-white"
+                            }`}
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>{c.assignedStudentName ? "مخصص (إعادة إرسال)" : "تخصيص وإرسال"}</span>
+                          </button>
                         </td>
                       </tr>
                     );
@@ -323,6 +458,125 @@ export default function CodesClient({ courses, lectures, initialCodes }: CodesCl
           )}
         </div>
       </div>
+
+      {/* Modal for selecting target student for unassigned activation code */}
+      {selectedCodeForWhatsApp && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md space-y-6 text-right shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-lg font-black text-slate-800">تخصيص وإرسال كود التفعيل لطالب</h3>
+                <p className="text-xs text-slate-400 mt-0.5">اختر الطالب ليتم ربط الكود باسمه وتجنب إرساله لطالب آخر</p>
+              </div>
+              <button
+                onClick={() => setSelectedCodeForWhatsApp(null)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
+              <p className="font-bold text-slate-700">الكود المخصص للإرسال:</p>
+              <p className="font-mono font-extrabold text-physicsCyan-700 text-sm">{selectedCodeForWhatsApp.code}</p>
+              <p className="text-[10px] text-slate-400">
+                المحتوى: {selectedCodeForWhatsApp.course?.title || selectedCodeForWhatsApp.lecture?.title || "الكورس"}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 block">اختر الطالب من المسجلين بالمنصة</label>
+                {students.length === 0 ? (
+                  <p className="text-xs text-slate-400">لا يوجد طلاب مسجلون بعد.</p>
+                ) : (
+                  <select
+                    value={targetStudentId}
+                    onChange={(e) => {
+                      setTargetStudentId(e.target.value);
+                      const s = students.find((st) => st.id === e.target.value);
+                      if (s) setCustomPhone(s.phone);
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-physicsCyan-500 transition"
+                  >
+                    {students.map((st) => (
+                      <option key={st.id} value={st.id}>
+                        {st.name} ({st.phone})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-slate-700 block">أدخل رقم التليفون</label>
+                  {(() => {
+                    const matched = students.find((s) => s.id === targetStudentId);
+                    return matched ? (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        ✓ تم المطابقة: {matched.name}
+                      </span>
+                    ) : null;
+                  })()}
+                </div>
+                <input
+                  type="tel"
+                  value={customPhone}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCustomPhone(val);
+                    const cleanVal = val.trim();
+                    if (cleanVal.length >= 3) {
+                      const matched = students.find(
+                        (st) => st.phone.includes(cleanVal) || cleanVal.includes(st.phone)
+                      );
+                      if (matched) {
+                        setTargetStudentId(matched.id);
+                      }
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const cleanVal = customPhone.trim();
+                      const matched = students.find(
+                        (st) => st.phone.includes(cleanVal) || cleanVal.includes(st.phone)
+                      );
+                      if (matched) {
+                        setTargetStudentId(matched.id);
+                        setCustomPhone(matched.phone);
+                      }
+                    }
+                  }}
+                  placeholder="اكتب رقم الهاتف واضغط Enter..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:border-physicsCyan-500 transition dir-ltr text-right"
+                />
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  تلميح: بمجرد كتابة رقم الموبايل أو الضغط على Enter، سيتم تلقائياً تحديد اسم الطالب صاحب الرقم في الخانة العلوية.
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={handleSendAndAssignWhatsApp}
+                  disabled={assignLoading}
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex justify-center items-center gap-2 shadow-md shadow-emerald-600/10"
+                >
+                  {assignLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>تخصيص الكود وفتح الواتساب للطالب</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

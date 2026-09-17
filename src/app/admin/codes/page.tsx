@@ -25,10 +25,13 @@ export default async function AdminCodesPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Fetch all activation codes
+  // Fetch all activation codes with assignedTo & course/lecture details
   const codes = await db.activationCode.findMany({
     include: {
       course: true,
+      assignedTo: {
+        select: { id: true, name: true, phone: true },
+      },
       lecture: {
         include: {
           chapter: true,
@@ -38,26 +41,36 @@ export default async function AdminCodesPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Query student user records to map who used what code
+  // Query student user records with phone to map users and for WhatsApp target selection
   const students = await db.user.findMany({
     where: { role: "STUDENT" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, phone: true },
+    orderBy: { name: "asc" },
   });
 
-  const studentMap = new Map(students.map((s) => [s.id, s.name]));
+  const studentMap = new Map(students.map((s) => [s.id, s]));
 
-  // Inject student names directly into the codes objects for easy viewing
-  const codesWithStudentNames = codes.map((c) => ({
-    ...c,
-    studentName: c.usedById ? studentMap.get(c.usedById) || "طالب محذوف" : null,
-  }));
+  // Inject student names & phones directly into the codes objects for easy viewing
+  const codesWithStudentDetails = codes.map((c) => {
+    const usedStudent = c.usedById ? studentMap.get(c.usedById) : null;
+    const assignedStudent = c.assignedTo || (c.assignedToId ? studentMap.get(c.assignedToId) : null);
+
+    return {
+      ...c,
+      studentName: usedStudent ? usedStudent.name : c.usedById ? "طالب محذوف" : null,
+      studentPhone: usedStudent ? usedStudent.phone : null,
+      assignedStudentName: assignedStudent ? assignedStudent.name : null,
+      assignedStudentPhone: assignedStudent ? assignedStudent.phone : null,
+    };
+  });
 
   return (
     <div className="max-w-7xl mx-auto">
       <CodesClient
         courses={courses}
         lectures={lectures}
-        initialCodes={codesWithStudentNames}
+        students={students}
+        initialCodes={codesWithStudentDetails}
       />
     </div>
   );

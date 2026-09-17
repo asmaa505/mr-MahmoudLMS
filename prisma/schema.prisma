@@ -8,18 +8,19 @@ generator client {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  name         String
-  phone        String        @unique
-  password     String
-  role         String        @default("STUDENT") // "STUDENT" or "ADMIN"
-  isApproved   Boolean       @default(false)
-  isBlocked    Boolean       @default(false)
-  grade        String        @default("1")       // "1" for 1st Sec, "2" for 2nd Sec, "3" for 3rd Sec
-  createdAt    DateTime      @default(now())
-  sessions     Session[]
-  enrollments  Enrollment[]
-  quizAttempts QuizAttempt[]
+  id            String           @id @default(uuid())
+  name          String
+  phone         String           @unique
+  password      String
+  role          String           @default("STUDENT") // "STUDENT" or "ADMIN"
+  isApproved    Boolean          @default(false)
+  isBlocked     Boolean          @default(false)
+  grade         String           @default("1")       // "1" for 1st Sec, "2" for 2nd Sec, "3" for 3rd Sec
+  createdAt     DateTime         @default(now())
+  sessions      Session[]
+  enrollments   Enrollment[]
+  quizAttempts  QuizAttempt[]
+  assignedCodes ActivationCode[] @relation("AssignedCodes")
 }
 
 model Session {
@@ -115,16 +116,19 @@ model Enrollment {
 }
 
 model ActivationCode {
-  id         String    @id @default(uuid())
-  code       String    @unique
-  courseId   String?
-  course     Course?   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lectureId  String?
-  lecture    Lecture?  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
-  isUsed     Boolean   @default(false)
-  usedById   String?
-  usedAt     DateTime?
-  createdAt  DateTime  @default(now())
+  id           String    @id @default(uuid())
+  code         String    @unique
+  courseId     String?
+  course       Course?   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lectureId    String?
+  lecture      Lecture?  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  isUsed       Boolean   @default(false)
+  usedById     String?
+  assignedToId String?
+  assignedTo   User?     @relation("AssignedCodes", fields: [assignedToId], references: [id], onDelete: SetNull)
+  usedAt       DateTime?
+  assignedAt   DateTime?
+  createdAt    DateTime  @default(now())
 }
 
 model QuizAttempt {
