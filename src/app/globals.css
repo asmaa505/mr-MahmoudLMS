@@ -31,3 +31,64 @@ body {
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* ==========================================================================
+   Brand Logo Background Watermark (Opacity 0.03 - 0.07)
+   Ensures seamless blending across cards, empty containers, and input fields
+   without interfering with text readability or form interaction.
+   ========================================================================== */
+
+/* Universal Content Card Watermark */
+.watermark-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.watermark-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/Images/logo.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Watermark specifically tuned for empty states & placeholder boxes */
+.watermark-empty {
+  position: relative;
+  overflow: hidden;
+}
+
+.watermark-empty::before {
+  content: "";
+  position: absolute;
+  inset: 5%;
+  background-image: url("/Images/logo.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Watermark for Form Inputs & Textareas (Light Theme) */
+.watermark-input {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url("/Images/logo.jpg") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+}
+
+/* Watermark for Form Inputs & Textareas (Dark Theme) */
+.watermark-input-dark {
+  background-image: linear-gradient(rgba(11, 19, 41, 0.95), rgba(11, 19, 41, 0.95)), url("/Images/logo.jpg") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+}
+

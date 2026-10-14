@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Phone, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { BookOpen, Phone, Lock, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
 import AuthBackground from "@/components/AuthBackground";
 
 function LoginContent() {
@@ -15,6 +15,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "";
+  const resetSuccess = searchParams.get("resetSuccess") === "true";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +62,13 @@ function LoginContent() {
           <p className="text-sm text-physicsNavy-300">منصة الفيزياء للأستاذ محمود الشحات</p>
         </div>
 
+        {resetSuccess && (
+          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-200 text-sm text-center flex items-center justify-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span>تم تغيير كلمة السر بنجاح، يمكنك التسجيل الآن.</span>
+          </div>
+        )}
+
         {error && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-200 text-sm text-center">
             {error}
@@ -86,7 +94,15 @@ function LoginContent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-physicsNavy-200 mb-2">كلمة المرور</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-physicsNavy-200">كلمة المرور</label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-physicsCyan-400 hover:text-physicsCyan-300 hover:underline transition"
+              >
+                نسيت كلمة السر؟
+              </Link>
+            </div>
             <div className="relative">
               <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-physicsNavy-400 pointer-events-none">
                 <Lock className="w-5 h-5" />

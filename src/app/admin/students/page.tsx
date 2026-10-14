@@ -1,12 +1,13 @@
 import React from "react";
+import Link from "next/link";
 import { db } from "@/lib/db";
-import { Check, ShieldAlert, ShieldCheck, RefreshCw } from "lucide-react";
+import { Check, ShieldAlert, ShieldCheck, RefreshCw, PhoneCall, MessageCircle, FileText } from "lucide-react";
 import dynamic from "next/dynamic";
+import { formatEgyptianPhone } from "@/lib/whatsapp";
 import { approveStudentAction, blockStudentAction, resetSessionsAction } from "./actions";
 import DeleteStudentForm from "./DeleteStudentForm";
 
 const CreateAccountModal = dynamic(() => import("./CreateAccountModal"), {
-  ssr: false,
   loading: () => <div className="h-10 w-36 bg-slate-200 animate-pulse rounded-xl" />,
 });
 
@@ -45,7 +46,8 @@ export default async function AdminStudentsPage() {
               <thead>
                 <tr className="border-b border-slate-100 text-slate-400 font-bold">
                   <th className="pb-3 pt-1 pl-4 font-semibold">الاسم</th>
-                  <th className="pb-3 pt-1 px-4 font-semibold">رقم الهاتف</th>
+                  <th className="pb-3 pt-1 px-4 font-semibold">رقم الطالب</th>
+                  <th className="pb-3 pt-1 px-4 font-semibold">رقم ولي الأمر</th>
                   <th className="pb-3 pt-1 px-4 font-semibold">نوع الحساب / الصف</th>
                   <th className="pb-3 pt-1 px-4 font-semibold text-center">حالة الحساب</th>
                   <th className="pb-3 pt-1 px-4 font-semibold text-center">الجلسات النشطة</th>
@@ -64,6 +66,35 @@ export default async function AdminStudentsPage() {
                       )}
                     </td>
                     <td className="py-4 px-4 text-slate-500 font-mono">{userItem.phone}</td>
+                    <td className="py-4 px-4 font-mono">
+                      {userItem.parentPhone ? (
+                        <div className="flex items-center gap-1.5 flex-nowrap">
+                          <span className="font-semibold text-xs text-slate-800">{userItem.parentPhone}</span>
+                          <div className="flex items-center gap-1 mr-1">
+                            {/* Direct Phone Call */}
+                            <a
+                              href={`tel:${userItem.parentPhone}`}
+                              title="اتصال هاتفي بولي الأمر"
+                              className="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 transition inline-flex items-center justify-center"
+                            >
+                              <PhoneCall className="w-3.5 h-3.5" />
+                            </a>
+                            {/* Direct WhatsApp Quick Chat */}
+                            <a
+                              href={`https://wa.me/${formatEgyptianPhone(userItem.parentPhone)}?text=${encodeURIComponent(`السلام عليكم ورحمة الله، بخصوص الطالب/ة ${userItem.name} على منصة مستر محمود الشحات للفيزياء:`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="مراسلة ولي الأمر عبر واتساب"
+                              className="p-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 transition inline-flex items-center justify-center"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 text-[11px]">— غير مسجل —</span>
+                      )}
+                    </td>
                     <td className="py-4 px-4 text-slate-500">{getGradeName(userItem.grade, userItem.role)}</td>
                     <td className="py-4 px-4 text-center">
                       {!userItem.isApproved ? (
@@ -89,6 +120,17 @@ export default async function AdminStudentsPage() {
                     </td>
                     <td className="py-4 pr-4 text-left">
                       <div className="flex gap-2 justify-end items-center flex-wrap">
+                        {/* Weekly Report & Progress Link */}
+                        {userItem.role === "STUDENT" && (
+                          <Link
+                            href={`/admin/students/${userItem.id}`}
+                            title="تقرير المتابعة الأسبوعي وسجل المشاهدة"
+                            className="p-1.5 rounded-lg border border-slate-200 hover:border-physicsCyan-500 text-slate-500 hover:text-physicsCyan-600 transition"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                          </Link>
+                        )}
+
                         {/* Session Reset */}
                         {userItem.sessions.length > 0 && (
                           <form action={resetSessionsAction}>

@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, User, Phone, Lock, Eye, EyeOff, GraduationCap, Loader2, CheckCircle2 } from "lucide-react";
+import { BookOpen, User, Phone, PhoneCall, Lock, Eye, EyeOff, GraduationCap, Loader2, CheckCircle2, Mail } from "lucide-react";
 import AuthBackground from "@/components/AuthBackground";
 
 function RegisterContent() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [parentPhone, setParentPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [grade, setGrade] = useState("3"); // Default to 3rd secondary
   const [showPassword, setShowPassword] = useState(false);
@@ -22,13 +24,19 @@ function RegisterContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (phone.trim() === parentPhone.trim()) {
+      setError("رقم ولي الأمر يجب أن يكون مختلفاً عن رقم هاتف الطالب لضمان دقة التواصل والمتابعة");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, password, grade }),
+        body: JSON.stringify({ name, phone, parentPhone, email: email.trim() || undefined, password, grade }),
       });
 
       const data = await response.json();
@@ -111,6 +119,39 @@ function RegisterContent() {
                     placeholder="01xxxxxxxxx"
                     className="w-full pl-4 pr-10 py-2.5 bg-physicsNavy-950/50 border border-physicsNavy-700 focus:border-physicsCyan-500 rounded-xl text-white placeholder-physicsNavy-500 outline-none text-right transition"
                     required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-physicsNavy-200 mb-1.5">رقم ولي الأمر (للمتابعة المباشرة)</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-physicsNavy-400 pointer-events-none">
+                    <PhoneCall className="w-5 h-5" />
+                  </span>
+                  <input
+                    type="tel"
+                    value={parentPhone}
+                    onChange={(e) => setParentPhone(e.target.value)}
+                    placeholder="01xxxxxxxxx (رقم الأب أو الأم)"
+                    className="w-full pl-4 pr-10 py-2.5 bg-physicsNavy-950/50 border border-physicsNavy-700 focus:border-physicsCyan-500 rounded-xl text-white placeholder-physicsNavy-500 outline-none text-right transition"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-physicsNavy-200 mb-1.5">البريد الإلكتروني (اختياري لاستعادة كلمة المرور)</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-physicsNavy-400 pointer-events-none">
+                    <Mail className="w-5 h-5" />
+                  </span>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="student@example.com"
+                    className="w-full pl-4 pr-10 py-2.5 bg-physicsNavy-950/50 border border-physicsNavy-700 focus:border-physicsCyan-500 rounded-xl text-white placeholder-physicsNavy-500 outline-none text-right transition"
                   />
                 </div>
               </div>

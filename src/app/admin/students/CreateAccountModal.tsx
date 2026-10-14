@@ -141,20 +141,33 @@ export default function CreateAccountModal() {
                 />
               </div>
 
-              {/* Grade (Only for Student) */}
+              {/* Student Only Fields */}
               {role === "STUDENT" && (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 block">الصف الدراسي</label>
-                  <select
-                    name="grade"
-                    defaultValue="1"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-physicsCyan-500 transition"
-                  >
-                    <option value="1">الصف الأول الثانوي</option>
-                    <option value="2">الصف الثاني الثانوي</option>
-                    <option value="3">الصف الثالث الثانوي</option>
-                  </select>
-                </div>
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 block">رقم ولي الأمر (للمتابعة المباشرة)</label>
+                    <input
+                      type="tel"
+                      name="parentPhone"
+                      required
+                      placeholder="01012345678"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-mono focus:outline-none focus:border-physicsCyan-500 transition dir-ltr text-right"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 block">الصف الدراسي</label>
+                    <select
+                      name="grade"
+                      defaultValue="1"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-physicsCyan-500 transition"
+                    >
+                      <option value="1">الصف الأول الثانوي</option>
+                      <option value="2">الصف الثاني الثانوي</option>
+                      <option value="3">الصف الثالث الثانوي</option>
+                    </select>
+                  </div>
+                </>
               )}
 
               {/* Submit */}

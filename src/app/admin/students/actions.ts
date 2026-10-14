@@ -60,12 +60,17 @@ export async function createAccountAction(formData: FormData) {
 
   const name = (formData.get("name") as string)?.trim();
   const phone = (formData.get("phone") as string)?.trim();
+  const parentPhone = (formData.get("parentPhone") as string)?.trim() || null;
   const password = formData.get("password") as string;
   const role = (formData.get("role") as string) || "STUDENT";
   const grade = (formData.get("grade") as string) || "1";
 
   if (!name || !phone || !password) {
     throw new Error("جميع البيانات الأساسية (الاسم، رقم الهاتف، كلمة المرور) مطلوبة");
+  }
+
+  if (role === "STUDENT" && parentPhone && phone === parentPhone) {
+    throw new Error("رقم ولي الأمر يجب ألا يتطابق مع رقم هاتف الطالب");
   }
 
   const existing = await db.user.findUnique({
@@ -82,6 +87,7 @@ export async function createAccountAction(formData: FormData) {
     data: {
       name,
       phone,
+      parentPhone: role === "STUDENT" ? parentPhone : null,
       password: hashedPassword,
       role: role === "ADMIN" ? "ADMIN" : "STUDENT",
       grade: role === "ADMIN" ? "3" : grade,

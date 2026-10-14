@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -13,7 +14,8 @@ import {
   GraduationCap,
   Menu,
   X,
-  UserCheck
+  UserCheck,
+  FileText
 } from "lucide-react";
 
 interface AdminSidebarClientProps {
@@ -28,6 +30,7 @@ export default function AdminSidebarClient({ userName, logoutAction }: AdminSide
   const menuItems = [
     { label: "الإحصائيات العامة", href: "/admin", icon: LayoutDashboard },
     { label: "إدارة الحسابات", href: "/admin/students", icon: Users },
+    { label: "تقارير المتابعة الأسبوعية", href: "/admin/reports", icon: FileText },
     { label: "إدارة الكورسات والمحاضرات", href: "/admin/courses", icon: BookOpen },
     { label: "بنك الأسئلة والاختبارات", href: "/admin/quizzes", icon: HelpCircle },
     { label: "أكواد التفعيل", href: "/admin/codes", icon: KeyRound },
@@ -45,12 +48,22 @@ export default function AdminSidebarClient({ userName, logoutAction }: AdminSide
           >
             {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-physicsCyan-500/10 text-physicsCyan-400 border border-physicsCyan-500/20">
-              <GraduationCap className="w-4 h-4" />
+          <Link
+            href="/admin"
+            className="flex items-center gap-2 group transition"
+            aria-label="لوحة تحكم المعلم"
+          >
+            <div className="relative overflow-hidden rounded-lg border border-physicsCyan-500/30 bg-[#0b1329] p-0.5 shadow-sm group-hover:border-physicsCyan-400/60 transition">
+              <Image
+                src="/Images/logo.jpg"
+                alt="شعار المنصة"
+                width={32}
+                height={32}
+                className="h-7 w-7 rounded-[6px] object-cover object-center group-hover:scale-105 transition"
+              />
             </div>
-            <span className="font-bold text-xs sm:text-sm">أ. محمود الشحات</span>
-          </div>
+            <span className="font-bold text-xs sm:text-sm group-hover:text-physicsCyan-300 transition">أ. محمود الشحات</span>
+          </Link>
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -77,15 +90,25 @@ export default function AdminSidebarClient({ userName, logoutAction }: AdminSide
       >
         {/* Desktop Admin Brand Header */}
         <div className="p-6 border-b border-physicsNavy-800 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-physicsCyan-500/10 border border-physicsCyan-500/20 text-physicsCyan-400">
-              <GraduationCap className="w-6 h-6" />
+          <Link
+            href="/admin"
+            className="flex items-center gap-3 group transition"
+            aria-label="لوحة تحكم المعلم"
+          >
+            <div className="relative overflow-hidden rounded-xl border border-physicsCyan-500/30 bg-[#0b1329] p-0.5 shadow-md shadow-physicsCyan-500/10 group-hover:border-physicsCyan-400/60 transition duration-300">
+              <Image
+                src="/Images/logo.jpg"
+                alt="شعار منصة الأستاذ محمود الشحات للفيزياء"
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-[10px] object-cover object-center group-hover:scale-105 transition"
+              />
             </div>
             <div>
-              <h1 className="font-extrabold text-sm block">أ. محمود الشحات</h1>
+              <h1 className="font-extrabold text-sm block group-hover:text-physicsCyan-300 transition">أ. محمود الشحات</h1>
               <span className="text-[10px] text-physicsCyan-400 block -mt-0.5">لوحة تحكم المعلم</span>
             </div>
-          </div>
+          </Link>
           {/* Close button inside drawer for mobile/tablet */}
           <button
             onClick={() => setIsOpen(false)}

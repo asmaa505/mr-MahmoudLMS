@@ -95,11 +95,13 @@ export default async function StudentDashboardPage() {
           </div>
 
           {enrolledCourses.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 text-center border border-slate-200/80 space-y-3">
-              <HelpCircle className="w-10 h-10 text-slate-300 mx-auto" />
-              <p className="text-slate-500 text-xs leading-relaxed">
-                لم تشترك في أي مناهج بعد. يرجى إدخال كود التفعيل بالجانب لتفعيل كورس جديد والبدء في المذاكرة.
-              </p>
+            <div className="bg-white rounded-2xl p-8 text-center border border-slate-200/80 watermark-empty">
+              <div className="relative z-10 space-y-3">
+                <HelpCircle className="w-10 h-10 text-slate-300 mx-auto" />
+                <p className="text-slate-500 text-xs leading-relaxed max-w-md mx-auto">
+                  لم تشترك في أي مناهج بعد. يرجى إدخال كود التفعيل بالجانب لتفعيل كورس جديد والبدء في المذاكرة.
+                </p>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
@@ -237,32 +239,34 @@ export default async function StudentDashboardPage() {
           <UnlockForm />
 
           {/* Student Stats Block */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4 text-right">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Award className="w-5 h-5 text-physicsCyan-600" />
-              <span>مستوى أدائك الأكاديمي</span>
-            </h3>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 text-right watermark-card">
+            <div className="relative z-10 space-y-4">
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
+                <Award className="w-5 h-5 text-physicsCyan-600" />
+                <span>مستوى أدائك الأكاديمي</span>
+              </h3>
 
-            {attempts.length === 0 ? (
-              <p className="text-slate-400 text-xs leading-relaxed py-2">
-                لم تقم بحل أي اختبارات بعد. سيتم عرض إحصائيات مستواك بعد حل أول اختبار.
-              </p>
-            ) : (
-              <div className="space-y-4 text-xs">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">إجمالي محاولات الاختبارات:</span>
-                  <span className="font-bold text-slate-800">{attempts.length} محاولة</span>
+              {attempts.length === 0 ? (
+                <p className="text-slate-400 text-xs leading-relaxed py-2">
+                  لم تقم بحل أي اختبارات بعد. سيتم عرض إحصائيات مستواك بعد حل أول اختبار.
+                </p>
+              ) : (
+                <div className="space-y-4 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">إجمالي محاولات الاختبارات:</span>
+                    <span className="font-bold text-slate-800">{attempts.length} محاولة</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">الاختبارات التي اجتزتها:</span>
+                    <span className="font-bold text-emerald-600">{passedQuizzes.length} من {attempts.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">متوسط درجاتك:</span>
+                    <span className="font-bold text-slate-850 bg-slate-100 px-2 py-0.5 rounded-md">%{avgScore}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">الاختبارات التي اجتزتها:</span>
-                  <span className="font-bold text-emerald-600">{passedQuizzes.length} من {attempts.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">متوسط درجاتك:</span>
-                  <span className="font-bold text-slate-850 bg-slate-100 px-2 py-0.5 rounded-md">%{avgScore}</span>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -18,7 +18,7 @@ vi.mock("next/headers", () => {
 });
 
 describe("Authentication API Integration Tests", () => {
-  const testPhone = "01999999999";
+  const testPhone = "01099999999";
   const testPassword = "securePassword123";
   const testName = "صلاح الدين";
   const testGrade = "3";
@@ -52,7 +52,7 @@ describe("Authentication API Integration Tests", () => {
     expect(res.status).toBe(400);
 
     const body = await res.json();
-    expect(body.error).toBe("جميع الحقول مطلوبة");
+    expect(body.error).toContain("جميع الحقول مطلوبة");
   });
 
   it("should successfully register a new student with pending approval", async () => {
@@ -61,6 +61,7 @@ describe("Authentication API Integration Tests", () => {
       body: JSON.stringify({
         name: testName,
         phone: testPhone,
+        parentPhone: "01188888888",
         password: testPassword,
         grade: testGrade,
       }),
@@ -86,6 +87,7 @@ describe("Authentication API Integration Tests", () => {
       body: JSON.stringify({
         name: testName,
         phone: testPhone,
+        parentPhone: "01188888888",
         password: testPassword,
         grade: testGrade,
       }),
@@ -95,7 +97,7 @@ describe("Authentication API Integration Tests", () => {
     expect(res.status).toBe(400);
 
     const body = await res.json();
-    expect(body.error).toBe("رقم الهاتف مسجل بالفعل");
+    expect(body.error).toContain("مسجل بالفعل");
   });
 
   it("should prevent login if the account is not yet approved by admin", async () => {

@@ -5,10 +5,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { headers } from "next/headers";
+import { generateVideoStreamToken } from "@/lib/video-security";
 import { Play, FileText, CheckCircle, AlertTriangle, ChevronRight, Lock, HelpCircle } from "lucide-react";
 
 const VideoPlayer = dynamic(() => import("@/components/VideoPlayer"), {
-  ssr: false,
   loading: () => (
     <div className="w-full aspect-video bg-slate-900 rounded-2xl animate-pulse flex items-center justify-center text-slate-500 text-xs">
       جاري تحميل مشغل الفيديو...
@@ -147,14 +147,16 @@ export default async function StudentCoursePage({ params, searchParams }: Course
                   activeLecture.videoUrl.includes("youtube.com") ||
                   activeLecture.videoUrl.includes("youtu.be") ||
                   activeLecture.videoUrl.includes("vimeo.com");
+                const streamToken = generateVideoStreamToken(user.id, activeLecture.id, user.role, studentIp);
                 const secureVideoUrl = isExternalEmbed
                   ? activeLecture.videoUrl
-                  : `/api/video/stream?lectureId=${activeLecture.id}`;
+                  : `/api/video/stream?lectureId=${activeLecture.id}&token=${streamToken}`;
 
                 return (
                   <div className="space-y-4">
                     <VideoPlayer
                       videoUrl={secureVideoUrl}
+                      lectureId={activeLecture.id}
                       studentName={user.name}
                       studentPhone={user.phone}
                       studentIp={studentIp}

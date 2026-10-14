@@ -40,15 +40,16 @@ export default function UnlockForm() {
   };
 
   return (
-    <div id="activation-card" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 transition-all duration-300">
-      <div className="flex items-center gap-2 mb-4">
-        <KeyRound className="w-5 h-5 text-physicsCyan-600" />
-        <h2 className="font-bold text-slate-800 text-base">تفعيل كورس جديد</h2>
-      </div>
+    <div id="activation-card" className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 transition-all duration-300 watermark-card">
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 mb-4">
+          <KeyRound className="w-5 h-5 text-physicsCyan-600" />
+          <h2 className="font-bold text-slate-800 text-base">تفعيل كورس جديد</h2>
+        </div>
 
-      <p className="text-slate-500 text-xs mb-5 leading-relaxed">
-        إذا قمت بشراء كارت تفعيل من الأستاذ محمود الشحات، أدخل الكود المكون من حروف وأرقام بالأسفل لتفعيل الكورس فوراً.
-      </p>
+        <p className="text-slate-500 text-xs mb-5 leading-relaxed">
+          إذا قمت بشراء كارت تفعيل من الأستاذ محمود الشحات، أدخل الكود المكون من حروف وأرقام بالأسفل لتفعيل الكورس فوراً.
+        </p>
 
       {error && (
         <div className="mb-5 p-3 bg-red-50 text-red-700 text-xs rounded-xl flex items-center gap-2 border border-red-100">
@@ -75,7 +76,7 @@ export default function UnlockForm() {
             if (success) setSuccess("");
           }}
           placeholder="مثال: PHY-XXXX-YYYY"
-          className="flex-1 px-4 py-2.5 border border-slate-200 focus:border-physicsCyan-500 rounded-xl outline-none text-right font-mono placeholder-slate-300 text-slate-700 text-sm transition focus:ring-1 focus:ring-physicsCyan-500"
+          className="flex-1 px-4 py-2.5 border border-slate-200 focus:border-physicsCyan-500 rounded-xl outline-none text-right font-mono placeholder-slate-400 text-slate-800 text-sm transition focus:ring-1 focus:ring-physicsCyan-500 watermark-input"
           required
         />
         <button
@@ -86,6 +87,7 @@ export default function UnlockForm() {
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>تفعيل</span>}
         </button>
       </form>
+      </div>
     </div>
   );
 }

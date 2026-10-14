@@ -12,10 +12,12 @@ import {
   Maximize,
   Minimize,
   Lock,
+  ShieldAlert,
 } from "lucide-react";
 
 interface VideoPlayerProps {
   videoUrl: string;
+  lectureId?: string;
   studentName: string;
   studentPhone: string;
   studentIp?: string;
@@ -23,6 +25,7 @@ interface VideoPlayerProps {
 
 export default function VideoPlayer({
   videoUrl,
+  lectureId,
   studentName,
   studentPhone,
   studentIp = "127.0.0.1",
@@ -30,16 +33,21 @@ export default function VideoPlayer({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const lastSyncTimeRef = useRef<number>(0);
 
   // Security & protection states
-  const [watermarkPos, setWatermarkPos] = useState({ top: "25%", left: "25%" });
+  // AC6: Subtle, non-distracting forensic watermark that moves gently every 40s instead of rapid annoying jumps
+  const [watermarkPos, setWatermarkPos] = useState({ top: "20%", left: "20%" });
   const [seekWarning, setSeekWarning] = useState<string | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const [shakeProgressBar, setShakeProgressBar] = useState<boolean>(false);
   const [isTabBlurred, setIsTabBlurred] = useState<boolean>(false);
+  const [isBlackoutActive, setIsBlackoutActive] = useState<boolean>(false);
+  const [devToolsDetected, setDevToolsDetected] = useState<boolean>(false);
   const maxWatchedTimeRef = useRef<number>(0);
   const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
   const feedbackTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const blackoutTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Player controls states
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -55,21 +63,55 @@ export default function VideoPlayer({
   const [hoverTime, setHoverTime] = useState<{ time: number; x: number; isBlocked: boolean } | null>(null);
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Shifting dynamic security watermark every 4 seconds to random locations
+  // Trigger blackout shutter (for screenshot shortcuts)
+  const triggerInstantBlackout = useCallback((reason = "تم حجب الصورة لمنع تصوير الشاشة") => {
+    setIsBlackoutActive(true);
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
+
+    // Attempt to clear clipboard to neutralize screen capture tools
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText("");
+      }
+    } catch {
+      // Ignore clipboard permission errors
+    }
+
+    if (blackoutTimerRef.current) clearTimeout(blackoutTimerRef.current);
+    blackoutTimerRef.current = setTimeout(() => {
+      setIsBlackoutActive(false);
+    }, 1500);
+
+    setSeekWarning(reason);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    warningTimerRef.current = setTimeout(() => {
+      setSeekWarning(null);
+    }, 3500);
+  }, []);
+
+  // 1. AC6: Subtle, non-distracting forensic watermark (gentle drift every 40 seconds)
   useEffect(() => {
     const interval = setInterval(() => {
-      const randomTop = Math.floor(Math.random() * 70) + 12; // 12% to 82%
-      const randomLeft = Math.floor(Math.random() * 60) + 10; // 10% to 70%
-      setWatermarkPos({
-        top: `${randomTop}%`,
-        left: `${randomLeft}%`,
-      });
-    }, 4000);
+      // Gentle positions around safe reading margins: 15% - 75%
+      const positions = [
+        { top: "18%", left: "15%" },
+        { top: "25%", left: "65%" },
+        { top: "72%", left: "20%" },
+        { top: "68%", left: "60%" },
+        { top: "45%", left: "35%" },
+      ];
+      const randomIdx = Math.floor(Math.random() * positions.length);
+      const nextPos = positions[randomIdx] || positions[0];
+      setWatermarkPos(nextPos);
+    }, 40000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // 2. Screen recording & tab-switching protection: pause & blur on window loss of focus
+  // 2. AC5: Page Visibility & Window Blur Detection (pause & blackout when user leaves window)
   useEffect(() => {
     const handleBlur = () => {
       setIsTabBlurred(true);
@@ -93,14 +135,56 @@ export default function VideoPlayer({
 
     window.addEventListener("blur", handleBlur);
     window.addEventListener("focus", handleFocus);
+    window.addEventListener("pagehide", handleBlur);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener("blur", handleBlur);
       window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pagehide", handleBlur);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
+
+  // 3. Screen Sharing / getDisplayMedia interception trap
+  useEffect(() => {
+    if (typeof window !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+      const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
+      navigator.mediaDevices.getDisplayMedia = async function (constraints) {
+        triggerInstantBlackout("تم إيقاف الفيديو لاكتشاف محاولة مشاركة الشاشة");
+        throw new Error("Screen sharing is blocked on secured lecture streams.");
+      };
+
+      return () => {
+        navigator.mediaDevices.getDisplayMedia = originalGetDisplayMedia;
+      };
+    }
+  }, [triggerInstantBlackout]);
+
+  // 4. DevTools Detection Heuristic
+  useEffect(() => {
+    let checkInterval: NodeJS.Timeout;
+    const threshold = 160;
+
+    const checkDevTools = () => {
+      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+      if (widthThreshold || heightThreshold) {
+        if (!devToolsDetected) {
+          setDevToolsDetected(true);
+          if (videoRef.current && !videoRef.current.paused) {
+            videoRef.current.pause();
+            setIsPlaying(false);
+          }
+        }
+      } else if (devToolsDetected) {
+        setDevToolsDetected(false);
+      }
+    };
+
+    checkInterval = setInterval(checkDevTools, 1500);
+    return () => clearInterval(checkInterval);
+  }, [devToolsDetected]);
 
   // Trigger forward blocked warning message
   const triggerForwardBlockWarning = useCallback((msg = "عذراً، غير مسموح بتقديم الفيديو - يمكنك فقط الرجوع للخلف لمراجعة الشرح") => {
@@ -123,22 +207,35 @@ export default function VideoPlayer({
     }, 1800);
   }, []);
 
-  // 3. Block devtools, print-screen, and strict forward keyboard shortcuts
+  // 5. AC4: Block devtools, print-screen, snipping tool shortcuts, and strict forward keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent PrintScreen, F12, Ctrl+S, Ctrl+U, Devtools
+      // A. Screen capture / screenshot keys -> Trigger INSTANT BLACKOUT SHUTTER
       if (
-        e.key === "F12" ||
         e.key === "PrintScreen" ||
-        (e.ctrlKey && (e.key === "s" || e.key === "S" || e.key === "u" || e.key === "U")) ||
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "C" || e.key === "c" || e.key === "J" || e.key === "j"))
+        (e.key === "s" && e.shiftKey && (e.metaKey || (e as any).windowsKey)) || // Win+Shift+S or Cmd+Shift+S
+        (e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4" || e.key === "5")) // Mac screenshot shortcuts
       ) {
         e.preventDefault();
-        triggerForwardBlockWarning("تم حظر الإجراء لدواعي أمان محتوى المحاضرة");
+        e.stopPropagation();
+        triggerInstantBlackout("تم حجب الفيديو لمنع التقاط الشاشة");
         return;
       }
 
-      // STRICT FORWARD SEEK BLOCK: ArrowRight or 'l' or 'L'
+      // B. Developer tools, Save, Print shortcuts
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && (e.key === "s" || e.key === "S" || e.key === "u" || e.key === "U" || e.key === "p" || e.key === "P")) ||
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "C" || e.key === "c" || e.key === "J" || e.key === "j")) ||
+        (e.metaKey && e.altKey && (e.key === "i" || e.key === "I" || e.key === "j" || e.key === "J"))
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerInstantBlackout("تم حظر الإجراء لدواعي أمان محتوى المحاضرة");
+        return;
+      }
+
+      // C. STRICT FORWARD SEEK BLOCK: ArrowRight or 'l' or 'L'
       if (e.key === "ArrowRight" || e.key === "l" || e.key === "L") {
         e.preventDefault();
         e.stopPropagation();
@@ -146,7 +243,7 @@ export default function VideoPlayer({
         return;
       }
 
-      // REWIND SHORTCUTS (ALLOWED & ENCOURAGED):
+      // D. REWIND SHORTCUTS (ALLOWED & ENCOURAGED):
       // ArrowLeft (rewind 5s), 'j' / 'J' (rewind 10s)
       if (e.key === "ArrowLeft") {
         e.preventDefault();
@@ -166,7 +263,7 @@ export default function VideoPlayer({
         return;
       }
 
-      // Space or 'k' for Play/Pause
+      // E. Space or 'k' for Play/Pause
       if (e.key === " " || e.key === "k" || e.key === "K") {
         const tag = (e.target as HTMLElement).tagName;
         if (tag !== "INPUT" && tag !== "TEXTAREA") {
@@ -175,7 +272,7 @@ export default function VideoPlayer({
         }
       }
 
-      // 'f' or 'F' for Fullscreen
+      // F. 'f' or 'F' for Fullscreen
       if (e.key === "f" || e.key === "F") {
         const tag = (e.target as HTMLElement).tagName;
         if (tag !== "INPUT" && tag !== "TEXTAREA") {
@@ -184,7 +281,7 @@ export default function VideoPlayer({
         }
       }
 
-      // 'm' or 'M' for Mute
+      // G. 'm' or 'M' for Mute
       if (e.key === "m" || e.key === "M") {
         const tag = (e.target as HTMLElement).tagName;
         if (tag !== "INPUT" && tag !== "TEXTAREA") {
@@ -194,9 +291,17 @@ export default function VideoPlayer({
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [triggerForwardBlockWarning, triggerFeedback]);
+    window.addEventListener("keydown", handleKeyDown, true);
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "PrintScreen") {
+        triggerInstantBlackout();
+      }
+    });
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, true);
+    };
+  }, [triggerForwardBlockWarning, triggerFeedback, triggerInstantBlackout]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -208,8 +313,12 @@ export default function VideoPlayer({
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
-  // 4. Prevent right-click context menu
+  // Prevent right-click context menu and drag
   const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDragStart = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
@@ -364,6 +473,30 @@ export default function VideoPlayer({
     setHoverTime(null);
   };
 
+  // Automated Video Progress Tracking
+  const syncProgress = useCallback(
+    async (isFinished = false) => {
+      if (!lectureId || !videoRef.current) return;
+      const cur = videoRef.current.currentTime;
+      const dur = videoRef.current.duration || duration || 0;
+      try {
+        await fetch("/api/student/progress/video", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lectureId,
+            currentTime: cur,
+            duration: dur,
+            isFinished,
+          }),
+        });
+      } catch (err) {
+        // Silently catch background network hiccups
+      }
+    },
+    [lectureId, duration]
+  );
+
   // HTML5 Video Events
   const handleTimeUpdate = () => {
     if (!videoRef.current) return;
@@ -372,6 +505,12 @@ export default function VideoPlayer({
 
     if (cur > maxWatchedTimeRef.current) {
       maxWatchedTimeRef.current = cur;
+    }
+
+    // Auto-sync progress to database every 10 seconds of playback
+    if (Math.abs(cur - lastSyncTimeRef.current) >= 10) {
+      lastSyncTimeRef.current = cur;
+      syncProgress(false);
     }
 
     // Buffer percentage
@@ -475,11 +614,12 @@ export default function VideoPlayer({
     return `${m < 10 ? "0" : ""}${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  // Detect video embed types
+  // Detect video embed types (YouTube, Vimeo, Enterprise DRM: VdoCipher / Bunny Stream DRM)
   const isYouTube = videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be");
   const isVimeo = videoUrl.includes("vimeo.com");
+  const isVdoCipher = videoUrl.includes("vdocipher.com");
+  const isBunnyStream = videoUrl.includes("iframe.mediadelivery.net") || videoUrl.includes("b-cdn.net");
 
-  // Get embed URL for YouTube (with controls=0 to prevent forwarding on YouTube too)
   const getYouTubeEmbedUrl = (url: string) => {
     let videoId = "";
     if (url.includes("youtu.be/")) {
@@ -492,7 +632,6 @@ export default function VideoPlayer({
     return `https://www.youtube.com/embed/${videoId}?controls=0&disablekb=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3`;
   };
 
-  // Get embed URL for Vimeo
   const getVimeoEmbedUrl = (url: string) => {
     const vimeoId = url.split("vimeo.com/")[1]?.split("?")[0];
     return `https://player.vimeo.com/video/${vimeoId}?badge=0&byline=0&portrait=0&title=0`;
@@ -505,24 +644,85 @@ export default function VideoPlayer({
     <div
       ref={containerRef}
       onContextMenu={handleContextMenu}
+      onDragStart={handleDragStart}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
       className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl select-none group"
-      style={{ WebkitUserSelect: "none", MozUserSelect: "none", msUserSelect: "none" }}
+      style={{
+        WebkitUserSelect: "none",
+        MozUserSelect: "none",
+        msUserSelect: "none",
+        userSelect: "none",
+      }}
     >
-      {/* Dynamic Floating Watermark Overlay (Jumps randomly every 4s) */}
+      {/* AC6: Elegant, Non-Distracting Forensic Watermark */}
+      {/* Subtle (20% opacity), smooth 3s cubic-bezier slow drift every 40s - does not disturb student focus */}
       <div
-        className="absolute z-40 pointer-events-none text-white/30 text-[10px] sm:text-xs font-mono font-bold bg-black/40 px-2.5 py-1 rounded-lg border border-white/10 whitespace-nowrap shadow-lg select-none transition-all duration-1000 ease-in-out backdrop-blur-[1px]"
+        className="absolute z-40 pointer-events-none select-none text-white/25 text-[10px] sm:text-xs font-mono font-medium tracking-wider px-3 py-1 rounded-md backdrop-blur-[0.5px] transition-all duration-[3000ms] ease-in-out"
         style={{
           top: watermarkPos.top,
           left: watermarkPos.left,
+          textShadow: "0 1px 2px rgba(0,0,0,0.8)",
         }}
       >
-        <span>{studentName}</span> • <span>{studentPhone}</span> • <span>{studentIp}</span>
+        <span>{studentName}</span>
+        <span className="mx-1.5 opacity-50">•</span>
+        <span>{studentPhone}</span>
+        <span className="mx-1.5 opacity-50">•</span>
+        <span>{studentIp}</span>
       </div>
 
+      {/* Discrete Corner Digital Forensic Fingerprint */}
+      <div className="absolute bottom-2 right-3 z-30 pointer-events-none select-none text-[9px] font-mono text-white/15">
+        LMS-SEC-{studentPhone.slice(-4)}
+      </div>
+
+      {/* Instant Blackout Shutter (Triggered on PrintScreen / Screenshot shortcuts) */}
+      {isBlackoutActive && (
+        <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center text-white text-center p-6 space-y-3 animate-in fade-in duration-75">
+          <ShieldAlert className="w-12 h-12 text-rose-500 animate-pulse" />
+          <h4 className="font-bold text-sm md:text-base text-rose-400">تم حجب الشاشة لمنع التقاط المحاضرة</h4>
+          <p className="text-slate-400 text-xs max-w-sm leading-relaxed">
+            محمية بموجب حقوق الملكية الفكرية لمنصة الأستاذ محمود الشحات.
+          </p>
+        </div>
+      )}
+
+      {/* DevTools Open Warning Shield */}
+      {devToolsDetected && (
+        <div className="absolute inset-0 z-50 bg-slate-950/98 backdrop-blur-md flex flex-col items-center justify-center text-white text-center p-6 space-y-3">
+          <AlertTriangle className="w-12 h-12 text-amber-500 animate-bounce" />
+          <h4 className="font-bold text-sm md:text-base text-amber-300">تم اكتشاف فتح أدوات المطورين (DevTools)</h4>
+          <p className="text-slate-400 text-xs max-w-sm leading-relaxed">
+            يرجى إغلاق نافذة فحص المتصفح لمتابعة مشاهدة المحاضرة بأمان.
+          </p>
+        </div>
+      )}
+
+      {/* AC5: Tab Blur / Window Switch Shield (Screen Recording & Multi-tasking Shield) */}
+      {isTabBlurred && !isBlackoutActive && !devToolsDetected && (
+        <div
+          onClick={() => {
+            setIsTabBlurred(false);
+            if (videoRef.current) {
+              videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+            }
+          }}
+          className="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center text-white text-center p-6 space-y-3 cursor-pointer"
+        >
+          <EyeOff className="w-12 h-12 text-physicsCyan-400 animate-pulse" />
+          <h4 className="font-bold text-sm md:text-base">تم إيقاف الفيديو مؤقتاً لمغادرة نافذة الدرس</h4>
+          <p className="text-slate-400 text-xs max-w-sm leading-relaxed">
+            لحماية محتوى الشرح ومنع برامج التسجيل، يتوقف الفيديو تلقائياً عند الانتقال لنافذة أخرى.
+          </p>
+          <span className="inline-block mt-2 px-4 py-1.5 bg-physicsCyan-500/20 text-physicsCyan-300 border border-physicsCyan-500/40 rounded-lg text-xs font-bold">
+            انقر هنا للاستئناف ▶
+          </span>
+        </div>
+      )}
+
       {/* Forward Blocked Warning Banner */}
-      {seekWarning && (
+      {seekWarning && !isBlackoutActive && (
         <div className="absolute top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-rose-600/95 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-2xl border border-rose-400/50 animate-in fade-in slide-in-from-top duration-300">
           <AlertTriangle className="w-4 h-4 shrink-0 text-amber-300 animate-bounce" />
           <span>{seekWarning}</span>
@@ -530,25 +730,14 @@ export default function VideoPlayer({
       )}
 
       {/* Action / Rewind Success Feedback Toast */}
-      {actionFeedback && !seekWarning && (
+      {actionFeedback && !seekWarning && !isBlackoutActive && (
         <div className="absolute top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-physicsNavy-900/95 text-physicsCyan-300 font-bold px-4 py-2 rounded-xl text-xs shadow-xl border border-physicsCyan-500/40 animate-in fade-in zoom-in-95 duration-200">
           <RotateCcw className="w-3.5 h-3.5 text-physicsCyan-400 animate-spin" style={{ animationIterationCount: 1, animationDuration: "0.5s" }} />
           <span>{actionFeedback}</span>
         </div>
       )}
 
-      {/* Tab Blur / Screen Recording Shield */}
-      {isTabBlurred && (
-        <div className="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center text-white text-center p-6 space-y-3">
-          <EyeOff className="w-12 h-12 text-amber-400 animate-pulse" />
-          <h4 className="font-bold text-sm md:text-base">تم إيقاف الفيديو مؤقتاً لمغادرة نافذة الدرس</h4>
-          <p className="text-slate-400 text-xs max-w-sm leading-relaxed">
-            لحماية محتوى الشرح ومنع برامج التسجيل، يتوقف الفيديو تلقائياً عند الانتقال لنافذة أخرى. انقر لمتابعة المشاهدة.
-          </p>
-        </div>
-      )}
-
-      {/* Main Video Element or Embed */}
+      {/* Video Renders: Enterprise DRM, Embeds, or Secured Chunked Stream */}
       {isYouTube ? (
         <iframe
           src={getYouTubeEmbedUrl(videoUrl)}
@@ -561,6 +750,14 @@ export default function VideoPlayer({
           src={getVimeoEmbedUrl(videoUrl)}
           className="w-full h-full border-0"
           allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+        />
+      ) : isVdoCipher || isBunnyStream ? (
+        /* AC1 & AC2: Enterprise DRM Iframe with EME (Widevine + FairPlay Hardware DRM Blackout) */
+        <iframe
+          src={videoUrl}
+          className="w-full h-full border-0"
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
           allowFullScreen
         />
       ) : (
@@ -577,14 +774,23 @@ export default function VideoPlayer({
             onSeeking={handleSeeking}
             onLoadedMetadata={handleLoadedMetadata}
             onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            className="w-full h-full object-contain cursor-pointer"
+            onPause={() => {
+              setIsPlaying(false);
+              syncProgress(false);
+            }}
+            onEnded={() => {
+              setIsPlaying(false);
+              syncProgress(true);
+            }}
+            className={`w-full h-full object-contain cursor-pointer transition-opacity duration-150 ${
+              isBlackoutActive ? "opacity-0" : "opacity-100"
+            }`}
           >
             متصفحك لا يدعم تشغيل هذا الفيديو.
           </video>
 
           {/* Big Center Play Icon when paused */}
-          {!isPlaying && !isTabBlurred && (
+          {!isPlaying && !isTabBlurred && !isBlackoutActive && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none transition">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-physicsCyan-500/90 text-slate-950 rounded-full flex items-center justify-center shadow-2xl backdrop-blur-sm transform hover:scale-110 transition duration-300">
                 <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-slate-950 translate-x-0.5" />
@@ -621,13 +827,13 @@ export default function VideoPlayer({
                   style={{ width: `${bufferedPercent}%` }}
                 />
 
-                {/* 2. Maximum Watched Limit Track (Subtle allowed rewind zone indicator) */}
+                {/* 2. Maximum Watched Limit Track */}
                 <div
                   className="absolute top-0 left-0 h-full bg-physicsCyan-950/70 border-r border-physicsCyan-400/60 rounded-l-full pointer-events-none"
                   style={{ width: `${maxWatchedPercent}%` }}
                 />
 
-                {/* 3. Played Track (Cyan) */}
+                {/* 3. Played Track */}
                 <div
                   className="absolute top-0 left-0 h-full bg-physicsCyan-500 rounded-l-full transition-[width] duration-75 relative pointer-events-none"
                   style={{ width: `${playedPercent}%` }}
@@ -668,7 +874,6 @@ export default function VideoPlayer({
             <div className="flex items-center justify-between text-white text-xs" dir="ltr">
               {/* Left Group: Play/Pause, Rewind 10s, Rewind 30s, Volume, Time */}
               <div className="flex items-center gap-2 sm:gap-3">
-                {/* Play / Pause */}
                 <button
                   type="button"
                   onClick={togglePlay}
@@ -678,7 +883,7 @@ export default function VideoPlayer({
                   {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
                 </button>
 
-                {/* Rewind 10 Seconds Button (Primary Rewind Action) */}
+                {/* Rewind 10 Seconds Button */}
                 <button
                   type="button"
                   onClick={(e) => handleRewind10(e)}
@@ -689,7 +894,7 @@ export default function VideoPlayer({
                   <span className="text-[10px] font-bold">10s-</span>
                 </button>
 
-                {/* Rewind 30 Seconds Button (Quick Jump Back) */}
+                {/* Rewind 30 Seconds Button */}
                 <button
                   type="button"
                   onClick={(e) => handleRewind30(e)}

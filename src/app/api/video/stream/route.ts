@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { verifyVideoStreamToken } from "@/lib/video-security";
 import fs from "fs";
 import path from "path";
 
@@ -9,6 +10,10 @@ function getMimeType(filePath: string): string {
   switch (ext) {
     case ".mp4":
       return "video/mp4";
+    case ".m3u8":
+      return "application/x-mpegURL";
+    case ".ts":
+      return "video/MP2T";
     case ".webm":
       return "video/webm";
     case ".ogg":
@@ -25,16 +30,46 @@ function getMimeType(filePath: string): string {
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. Verify User Authentication
-    const user = await getAuthUser();
-    if (!user) {
-      return new NextResponse("غير مصرح: يرجى تسجيل الدخول لمشاهدة المحاضرة", { status: 401 });
-    }
-
-    // 2. Read lectureId parameter
     const lectureId = request.nextUrl.searchParams.get("lectureId");
+    const streamToken = request.nextUrl.searchParams.get("token");
+
     if (!lectureId) {
       return new NextResponse("معرف المحاضرة مطلوب", { status: 400 });
+    }
+
+    // 1. Anti-hotlinking / Anti-leeching check
+    const referer = request.headers.get("referer");
+    const host = request.headers.get("host");
+    if (referer && host) {
+      try {
+        const refererUrl = new URL(referer);
+        if (refererUrl.host !== host) {
+          return new NextResponse("طلب غير مصرح به من مصدر خارجي", { status: 403 });
+        }
+      } catch {
+        // invalid referer URL format
+      }
+    }
+
+    // 2. Authentication: either valid signed token or active session cookie
+    let authenticatedUserId: string | null = null;
+    let userRole = "STUDENT";
+
+    if (streamToken) {
+      const tokenPayload = verifyVideoStreamToken(streamToken);
+      if (tokenPayload && tokenPayload.lectureId === lectureId) {
+        authenticatedUserId = tokenPayload.userId;
+        userRole = tokenPayload.role;
+      }
+    }
+
+    if (!authenticatedUserId) {
+      const user = await getAuthUser();
+      if (!user) {
+        return new NextResponse("غير مصرح: يرجى تسجيل الدخول لمشاهدة المحاضرة", { status: 401 });
+      }
+      authenticatedUserId = user.id;
+      userRole = user.role;
     }
 
     // 3. Find Lecture and Chapter Course in Database
@@ -54,11 +89,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Verify Student Enrollment (Admins have full access)
-    if (user.role === "STUDENT") {
+    if (userRole === "STUDENT") {
       const enrollment = await db.enrollment.findUnique({
         where: {
           userId_courseId: {
-            userId: user.id,
+            userId: authenticatedUserId,
             courseId: lecture.chapter.courseId,
           },
         },
@@ -78,7 +113,7 @@ export async function GET(request: NextRequest) {
     if (videoUrl.startsWith("/uploads/")) {
       fullPath = path.join(process.cwd(), "public", videoUrl.replace(/^\//, ""));
     } else if (videoUrl.startsWith("http://") || videoUrl.startsWith("https://")) {
-      // Remote video or embed - redirect to the URL or return unauthorized for direct streams
+      // Remote video or embed - redirect to the URL
       return NextResponse.redirect(videoUrl);
     } else {
       fullPath = path.join(process.cwd(), "public", "uploads", "videos", videoUrl);
@@ -95,10 +130,18 @@ export async function GET(request: NextRequest) {
     }
     fullPath = normalized;
 
-    // 6. Handle HTTP Range Requests (Partial Content 206) for video chunking
+    // 6. Handle HTTP Range Requests (Partial Content 206) for video chunking & streaming
     const stat = await fs.promises.stat(fullPath);
     const fileSize = stat.size;
     const range = request.headers.get("range");
+
+    const commonSecurityHeaders = {
+      "Content-Disposition": "inline",
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "private, no-cache, no-store, must-revalidate",
+      "Pragma": "no-cache",
+      "Expires": "0",
+    };
 
     if (range) {
       const parts = range.replace(/bytes=/, "").split("-");
@@ -110,6 +153,7 @@ export async function GET(request: NextRequest) {
           status: 416,
           headers: {
             "Content-Range": `bytes */${fileSize}`,
+            ...commonSecurityHeaders,
           },
         });
       }
@@ -135,10 +179,7 @@ export async function GET(request: NextRequest) {
           "Accept-Ranges": "bytes",
           "Content-Length": chunkSize.toString(),
           "Content-Type": getMimeType(fullPath),
-          "Content-Disposition": "inline",
-          "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
+          ...commonSecurityHeaders,
         },
       });
     } else {
@@ -161,10 +202,7 @@ export async function GET(request: NextRequest) {
           "Content-Length": fileSize.toString(),
           "Content-Type": getMimeType(fullPath),
           "Accept-Ranges": "bytes",
-          "Content-Disposition": "inline",
-          "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
+          ...commonSecurityHeaders,
         },
       });
     }

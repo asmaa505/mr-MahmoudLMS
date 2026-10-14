@@ -20,17 +20,36 @@ export default function LandingPage() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35" />
 
       {/* Header / Navbar */}
-      <header className="relative z-50 border-b border-slate-800 bg-slate-950/40 backdrop-blur-md sticky top-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-physicsCyan-500/10 border border-physicsCyan-500/20 text-physicsCyan-400">
-              <Layers className="w-6 h-6 animate-pulse" />
+      <header className="relative z-50 border-b border-physicsNavy-800/80 bg-[#0b1329]/90 backdrop-blur-md sticky top-0 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 md:h-24 flex items-center justify-between">
+          {/* Brand Logo & Platform Title Link */}
+          <Link
+            href="/"
+            className="flex items-center gap-3.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-physicsCyan-400 rounded-2xl transition-all duration-300 py-1"
+            aria-label="الرئيسية - الأستاذ محمود الشحات للفيزياء"
+          >
+            {/* Enlarged Prominent Brand Logo Container */}
+            <div className="relative overflow-hidden rounded-2xl border border-physicsCyan-500/30 bg-[#0b1329] p-1 shadow-lg shadow-physicsCyan-500/10 group-hover:border-physicsCyan-400/60 group-hover:shadow-[0_0_25px_-3px_rgba(6,182,212,0.35)] transition-all duration-300">
+              <Image
+                src="/Images/logo.jpg"
+                alt="شعار منصة الأستاذ محمود الشحات للفيزياء"
+                width={180}
+                height={100}
+                className="h-12 md:h-16 w-auto max-w-[140px] md:max-w-[180px] object-contain rounded-xl group-hover:scale-105 group-hover:opacity-95 transition-all duration-300"
+                priority
+              />
             </div>
-            <div>
-              <span className="font-bold text-lg tracking-wide block">محمود الشحات</span>
-              <span className="text-xs text-physicsCyan-400 block -mt-1">أستاذ الفيزياء</span>
+
+            {/* Platform Brand Typography */}
+            <div className="flex flex-col text-right select-none">
+              <span className="font-extrabold text-lg md:text-xl tracking-wide text-white group-hover:text-physicsCyan-300 transition-colors">
+                محمود الشحات
+              </span>
+              <span className="text-xs md:text-sm text-physicsCyan-400 font-semibold -mt-1 group-hover:text-physicsCyan-200 transition-colors">
+                أستاذ الفيزياء
+              </span>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-4">
             <Link
               href="/login"

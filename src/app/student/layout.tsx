@@ -2,6 +2,7 @@ import React from "react";
 import { requireAuth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { LogOut, BookOpen, GraduationCap, Award, User } from "lucide-react";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
@@ -35,17 +36,27 @@ export default async function StudentLayout({
       {/* Top Navbar */}
       <nav className="bg-physicsNavy-900 text-white shadow-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
+          <div className="flex justify-between h-16 md:h-20 items-center">
             {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-physicsCyan-500/10 border border-physicsCyan-500/20 text-physicsCyan-400">
-                <BookOpen className="w-5 h-5" />
+            <Link
+              href="/student"
+              className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-physicsCyan-400 rounded-xl transition-all duration-300 py-1"
+              aria-label="لوحة التحكم - منصة الفيزياء"
+            >
+              <div className="relative overflow-hidden rounded-xl border border-physicsCyan-500/30 bg-[#0b1329] p-1 shadow-md group-hover:border-physicsCyan-400/60 group-hover:shadow-[0_0_20px_-2px_rgba(6,182,212,0.3)] transition-all duration-300">
+                <Image
+                  src="/Images/logo.jpg"
+                  alt="شعار منصة الأستاذ محمود الشحات للفيزياء"
+                  width={150}
+                  height={80}
+                  className="h-10 md:h-12 w-auto max-w-[120px] md:max-w-[150px] rounded-lg object-contain group-hover:scale-105 group-hover:opacity-95 transition-all duration-300"
+                />
               </div>
-              <div>
-                <span className="font-bold text-sm block">محمود الشحات</span>
-                <span className="text-[10px] text-physicsCyan-400 block -mt-0.5">منصة الفيزياء</span>
+              <div className="flex flex-col text-right">
+                <span className="font-bold text-sm md:text-base block text-white group-hover:text-physicsCyan-300 transition-colors">محمود الشحات</span>
+                <span className="text-[10px] md:text-xs text-physicsCyan-400 block -mt-0.5 group-hover:text-physicsCyan-200 transition-colors">منصة الفيزياء</span>
               </div>
-            </div>
+            </Link>
 
             {/* Student Info & Nav links */}
             <div className="flex items-center gap-6">

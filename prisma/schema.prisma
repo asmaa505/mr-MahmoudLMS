@@ -11,16 +11,21 @@ model User {
   id            String           @id @default(uuid())
   name          String
   phone         String           @unique
+  email         String?          @unique
   password      String
   role          String           @default("STUDENT") // "STUDENT" or "ADMIN"
   isApproved    Boolean          @default(false)
   isBlocked     Boolean          @default(false)
   grade         String           @default("1")       // "1" for 1st Sec, "2" for 2nd Sec, "3" for 3rd Sec
+  parentPhone   String?                              // Parent phone number for direct contact & updates
+  subscriptionDate DateTime      @default(now())     // Start date of subscription for weekly report cycles
   createdAt     DateTime         @default(now())
   sessions      Session[]
   enrollments   Enrollment[]
   quizAttempts  QuizAttempt[]
   assignedCodes ActivationCode[] @relation("AssignedCodes")
+  lessonProgress LessonProgress[]
+  weeklyReports WeeklyReport[]
 }
 
 model Session {
@@ -67,6 +72,7 @@ model Lecture {
   chapterId    String
   chapter      Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   codes        ActivationCode[]
+  progress     LessonProgress[]
   createdAt    DateTime         @default(now())
 }
 
@@ -141,4 +147,44 @@ model QuizAttempt {
   answers     String    // JSON string containing detailed student responses
   startedAt   DateTime  @default(now())
   submittedAt DateTime?
+}
+
+model LessonProgress {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lectureId       String
+  lecture         Lecture   @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  watchedSeconds  Int       @default(0)
+  totalSeconds    Int       @default(0)
+  watchPercentage Float     @default(0) // 0 to 100 percentage
+  isCompleted     Boolean   @default(false)
+  lastPosition    Float     @default(0) // Last playback timestamp in seconds
+  completedAt     DateTime?
+  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime  @default(now())
+
+  @@unique([userId, lectureId])
+}
+
+model WeeklyReport {
+  id                     String    @id @default(uuid())
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekNumber             Int       // Week number relative to subscription date (1, 2, 3...)
+  startDate              DateTime  // Start of this 7-day period
+  endDate                DateTime  // End of this 7-day period
+  videosWatchedCount     Int       @default(0)
+  totalVideosAvailable   Int       @default(0)
+  averageWatchPercentage Float     @default(0)
+  examsTakenCount        Int       @default(0)
+  averageExamScore       Float     @default(0)
+  status                 String    @default("READY") // "READY", "SENT_STUDENT", "SENT_PARENT", "SENT_BOTH"
+  summaryText            String    // Formatted Arabic report ready for WhatsApp/SMS
+  sentToStudentAt        DateTime?
+  sentToParentAt         DateTime?
+  generatedAt            DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@unique([userId, weekNumber])
 }

@@ -15,31 +15,79 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, phone, password, grade } = await request.json();
+    const { name, phone, password, grade, parentPhone, email } = await request.json();
 
-    if (!name || !phone || !password || !grade) {
+    if (!name || !phone || !password || !grade || !parentPhone) {
       return NextResponse.json(
-        { error: "جميع الحقول مطلوبة" },
+        { error: "جميع الحقول مطلوبة، بما في ذلك رقم ولي الأمر" },
         { status: 400 }
       );
     }
 
-    const sanitized = sanitizePayload({ name, phone, password, grade });
+    const sanitized = sanitizePayload({ name, phone, password, grade, parentPhone, email: email || "" });
     const cleanName = sanitized.name.trim();
     const cleanPhone = sanitized.phone.trim();
     const cleanPassword = sanitized.password;
     const cleanGrade = sanitized.grade;
+    const cleanParentPhone = sanitized.parentPhone.trim();
+    const cleanEmail = sanitized.email ? sanitized.email.trim().toLowerCase() : null;
 
-    // Check if phone number already exists
+    if (cleanEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
+        return NextResponse.json(
+          { error: "يرجى إدخال بريد إلكتروني صحيح" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate phone formats (Egyptian standard 11 digits: 010, 011, 012, 015)
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      return NextResponse.json(
+        { error: "يرجى إدخال رقم هاتف صحيح للطالب (11 رقماً يبدأ بـ 01)" },
+        { status: 400 }
+      );
+    }
+
+    if (!phoneRegex.test(cleanParentPhone)) {
+      return NextResponse.json(
+        { error: "يرجى إدخال رقم هاتف صحيح لولي الأمر (11 رقماً يبدأ بـ 01)" },
+        { status: 400 }
+      );
+    }
+
+    if (cleanPhone === cleanParentPhone) {
+      return NextResponse.json(
+        { error: "يجب أن يكون رقم هاتف ولي الأمر مختلفاً عن رقم هاتف الطالب لضمان دقة المتابعة" },
+        { status: 400 }
+      );
+    }
+
+    // Check if student phone number already exists
     const existingUser = await db.user.findUnique({
       where: { phone: cleanPhone },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "رقم الهاتف مسجل بالفعل" },
+        { error: "رقم هاتف الطالب مسجل بالفعل في المنصة" },
         { status: 400 }
       );
+    }
+
+    // Check if student email already exists
+    if (cleanEmail) {
+      const existingEmail = await db.user.findFirst({
+        where: { email: cleanEmail },
+      });
+      if (existingEmail) {
+        return NextResponse.json(
+          { error: "البريد الإلكتروني مسجل بالفعل في المنصة" },
+          { status: 400 }
+        );
+      }
     }
 
     const hashedPassword = await hashPassword(cleanPassword);
@@ -49,10 +97,12 @@ export async function POST(request: NextRequest) {
       data: {
         name: cleanName,
         phone: cleanPhone,
+        email: cleanEmail,
         password: hashedPassword,
         grade: cleanGrade,
+        parentPhone: cleanParentPhone,
         role: "STUDENT",
-        isApproved: false, // Must be approved by Mr. Mahmud
+        isApproved: false, // Must be approved by Mr. Mahmoud
       },
     });
 
