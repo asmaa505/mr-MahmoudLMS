@@ -25,9 +25,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sanitized = sanitizePayload({ phone, password });
+    const sanitized = sanitizePayload({ phone });
     const cleanPhone = sanitized.phone.trim();
-    const cleanPassword = sanitized.password;
 
     // Fetch user
     const user = await db.user.findUnique({
@@ -41,8 +40,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify password
-    const isPasswordValid = await comparePassword(cleanPassword, user.password);
+    // Verify password directly using raw password input
+    const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: "بيانات الدخول غير صحيحة" },

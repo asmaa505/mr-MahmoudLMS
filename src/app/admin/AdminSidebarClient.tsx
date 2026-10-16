@@ -53,13 +53,13 @@ export default function AdminSidebarClient({ userName, logoutAction }: AdminSide
             className="flex items-center gap-2 group transition"
             aria-label="لوحة تحكم المعلم"
           >
-            <div className="relative overflow-hidden rounded-lg border border-physicsCyan-500/30 bg-[#0b1329] p-0.5 shadow-sm group-hover:border-physicsCyan-400/60 transition">
+            <div className="relative overflow-hidden rounded-lg border border-physicsCyan-500/30 bg-[#0b1329] p-1 shadow-sm group-hover:border-physicsCyan-400/60 transition">
               <Image
                 src="/Images/logo.jpg"
                 alt="شعار المنصة"
-                width={32}
-                height={32}
-                className="h-7 w-7 rounded-[6px] object-cover object-center group-hover:scale-105 transition"
+                width={70}
+                height={35}
+                className="h-7 w-auto max-w-[65px] rounded-[6px] object-contain group-hover:scale-105 transition"
               />
             </div>
             <span className="font-bold text-xs sm:text-sm group-hover:text-physicsCyan-300 transition">أ. محمود الشحات</span>
@@ -95,13 +95,13 @@ export default function AdminSidebarClient({ userName, logoutAction }: AdminSide
             className="flex items-center gap-3 group transition"
             aria-label="لوحة تحكم المعلم"
           >
-            <div className="relative overflow-hidden rounded-xl border border-physicsCyan-500/30 bg-[#0b1329] p-0.5 shadow-md shadow-physicsCyan-500/10 group-hover:border-physicsCyan-400/60 transition duration-300">
+            <div className="relative overflow-hidden rounded-xl border border-physicsCyan-500/30 bg-[#0b1329] p-1 shadow-md shadow-physicsCyan-500/10 group-hover:border-physicsCyan-400/60 transition duration-300">
               <Image
                 src="/Images/logo.jpg"
                 alt="شعار منصة الأستاذ محمود الشحات للفيزياء"
-                width={40}
-                height={40}
-                className="h-10 w-10 rounded-[10px] object-cover object-center group-hover:scale-105 transition"
+                width={90}
+                height={45}
+                className="h-10 w-auto max-w-[80px] rounded-[10px] object-contain group-hover:scale-105 transition"
               />
             </div>
             <div>

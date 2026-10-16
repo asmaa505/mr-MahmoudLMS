@@ -14,6 +14,18 @@ export function sanitizeString(val: string): string {
 }
 
 /**
+ * Keys that should never undergo HTML sanitization/transformation (e.g., passwords)
+ * to prevent unintended mutations prior to security service processing.
+ */
+const EXCLUDED_KEYS = new Set([
+  "password",
+  "newPassword",
+  "confirmPassword",
+  "currentPassword",
+  "oldPassword",
+]);
+
+/**
  * Recursively parses and sanitizes all properties of any payload object or array.
  */
 export function sanitizePayload<T>(payload: T): T {
@@ -24,10 +36,15 @@ export function sanitizePayload<T>(payload: T): T {
     const copy = Array.isArray(payload) ? [] : {};
     for (const key in payload) {
       if (Object.prototype.hasOwnProperty.call(payload, key)) {
-        (copy as any)[key] = sanitizePayload((payload as any)[key]);
+        if (EXCLUDED_KEYS.has(key) || key.toLowerCase().includes("password")) {
+          (copy as any)[key] = (payload as any)[key];
+        } else {
+          (copy as any)[key] = sanitizePayload((payload as any)[key]);
+        }
       }
     }
     return copy as T;
   }
   return payload;
 }
+

@@ -24,10 +24,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sanitized = sanitizePayload({ name, phone, password, grade, parentPhone, email: email || "" });
+    const sanitized = sanitizePayload({ name, phone, grade, parentPhone, email: email || "" });
     const cleanName = sanitized.name.trim();
     const cleanPhone = sanitized.phone.trim();
-    const cleanPassword = sanitized.password;
     const cleanGrade = sanitized.grade;
     const cleanParentPhone = sanitized.parentPhone.trim();
     const cleanEmail = sanitized.email ? sanitized.email.trim().toLowerCase() : null;
@@ -90,7 +89,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const hashedPassword = await hashPassword(cleanPassword);
+    const hashedPassword = await hashPassword(password);
 
     // Create the student account (isApproved defaults to false)
     const newUser = await db.user.create({

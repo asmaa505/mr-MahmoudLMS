@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
 import { POST as registerHandler } from "@/app/api/auth/register/route";
 import { POST as loginHandler } from "@/app/api/auth/login/route";
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
+import { comparePassword } from "@/lib/auth";
+import { sanitizePayload } from "@/lib/sanitize";
 import { resetRateLimitCache } from "@/lib/rateLimit";
-import { vi } from "vitest";
 
 vi.mock("next/headers", () => {
   const cookieStore = {
@@ -176,4 +177,96 @@ describe("Authentication API Integration Tests", () => {
 
     expect(lastResStatus).toBe(429);
   });
+
+  it("should process raw password with special characters without HTML sanitization or string mutations during registration and login", async () => {
+    const rawPassPhone = "01077777777";
+    const rawSpecialPassword = "P@ss<w0rd>&\"'/! 123";
+    let specialUserId: string | null = null;
+
+    try {
+      await db.user.deleteMany({ where: { phone: rawPassPhone } });
+
+      // 1. Register student with special characters in password
+      const registerReq = new NextRequest("http://localhost/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          name: "طالب كلمة مرور خاصة",
+          phone: rawPassPhone,
+          parentPhone: "01177777777",
+          password: rawSpecialPassword,
+          grade: "3",
+        }),
+      });
+
+      const registerRes = await registerHandler(registerReq);
+      expect(registerRes.status).toBe(201);
+      const registerBody = await registerRes.json();
+      specialUserId = registerBody.userId;
+
+      // 2. Verify stored bcrypt hash matches RAW password directly, NOT an HTML-sanitized version
+      const storedUser = await db.user.findUnique({ where: { id: specialUserId! } });
+      expect(storedUser).toBeDefined();
+
+      const matchesRaw = await comparePassword(rawSpecialPassword, storedUser!.password);
+      expect(matchesRaw).toBe(true);
+
+      const htmlSanitizedPassword = "P@ss&lt;w0rd&gt;&amp;&quot;&#x27;&#x2F;! 123";
+      const matchesHtmlSanitized = await comparePassword(htmlSanitizedPassword, storedUser!.password);
+      expect(matchesHtmlSanitized).toBe(false);
+
+      // 3. Admin approves account
+      await db.user.update({
+        where: { id: specialUserId! },
+        data: { isApproved: true },
+      });
+
+      // 4. Login with exact raw password directly succeeds
+      const loginReq = new NextRequest("http://localhost/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          phone: rawPassPhone,
+          password: rawSpecialPassword,
+        }),
+      });
+
+      const loginRes = await loginHandler(loginReq);
+      expect(loginRes.status).toBe(200);
+
+      // 5. Attempting to login with HTML-mutated password fails (rejects mutated input)
+      const mutatedLoginReq = new NextRequest("http://localhost/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          phone: rawPassPhone,
+          password: htmlSanitizedPassword,
+        }),
+      });
+
+      const mutatedLoginRes = await loginHandler(mutatedLoginReq);
+      expect(mutatedLoginRes.status).toBe(401);
+    } finally {
+      if (specialUserId) {
+        await db.session.deleteMany({ where: { userId: specialUserId } });
+        await db.user.deleteMany({ where: { id: specialUserId } });
+      }
+      await db.user.deleteMany({ where: { phone: rawPassPhone } });
+    }
+  });
+
+  it("should preserve passwords without mutation in sanitizePayload utility", () => {
+    const rawPassword = "Raw<Password>&'\"/ 999";
+    const payload = {
+      name: "<b>Test Name</b>",
+      phone: "01012345678",
+      password: rawPassword,
+      confirmPassword: rawPassword,
+      newPassword: rawPassword,
+    };
+
+    const sanitized = sanitizePayload(payload);
+    expect(sanitized.name).toBe("&lt;b&gt;Test Name&lt;&#x2F;b&gt;");
+    expect(sanitized.password).toBe(rawPassword);
+    expect(sanitized.confirmPassword).toBe(rawPassword);
+    expect(sanitized.newPassword).toBe(rawPassword);
+  });
 });
+
