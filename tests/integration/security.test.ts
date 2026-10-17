@@ -212,6 +212,85 @@ describe("Security & Access Control Integration Tests", () => {
     expect(res.status).toBe(403);
   });
 
+  it("should exclude model answers and explanations from quiz submission response payload delivered to students", async () => {
+    (globalThis as any).__mockSecurityToken = enrolledStudentToken;
+
+    // Add a question with correctOption and explanation to testQuiz
+    const testQuestion = await db.question.create({
+      data: {
+        quizId: testQuiz.id,
+        type: "MCQ",
+        text: "ما هي وحدة قياس القوة الدافعة الكهربية؟",
+        options: JSON.stringify(["فولت", "أمبير", "أوم", "جول"]),
+        correctOption: 0,
+        explanation: "الفولت هو وحدة قياس فرق الجهد والقوة الدافعة الكهربية.",
+      },
+    });
+
+    const req = new NextRequest(`http://localhost/api/student/quiz/submit`, {
+      method: "POST",
+      body: JSON.stringify({
+        quizId: testQuiz.id,
+        answers: { [testQuestion.id]: 0 },
+      }),
+    });
+
+    const res = await quizSubmitHandler(req);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.questions).toBeDefined();
+    expect(body.questions.length).toBeGreaterThan(0);
+
+    // Verify correct answers and explanations are stripped from response payload
+    for (const q of body.questions) {
+      expect(q.correctOption).toBeUndefined();
+      expect(q.explanation).toBeUndefined();
+    }
+  });
+
+  it("should enforce maximum attempt threshold per student per quiz and reject submissions exceeding the limit (403)", async () => {
+    (globalThis as any).__mockSecurityToken = enrolledStudentToken;
+
+    // Configure testQuiz with maxAttempts = 2
+    await db.quiz.update({
+      where: { id: testQuiz.id },
+      data: { maxAttempts: 2 },
+    });
+
+    // Count existing attempts for enrolled student (there was 1 from previous test)
+    const currentAttempts = await db.quizAttempt.count({
+      where: { userId: enrolledStudent.id, quizId: testQuiz.id },
+    });
+
+    // Submit remaining attempt to reach maxAttempts (2)
+    for (let i = currentAttempts; i < 2; i++) {
+      const req = new NextRequest(`http://localhost/api/student/quiz/submit`, {
+        method: "POST",
+        body: JSON.stringify({
+          quizId: testQuiz.id,
+          answers: {},
+        }),
+      });
+      const res = await quizSubmitHandler(req);
+      expect(res.status).toBe(200);
+    }
+
+    // Now attempt #3 must be rejected with HTTP 403
+    const exceedingReq = new NextRequest(`http://localhost/api/student/quiz/submit`, {
+      method: "POST",
+      body: JSON.stringify({
+        quizId: testQuiz.id,
+        answers: {},
+      }),
+    });
+    const exceedingRes = await quizSubmitHandler(exceedingReq);
+    expect(exceedingRes.status).toBe(403);
+
+    const body = await exceedingRes.json();
+    expect(body.error).toContain("استنفدت الحد الأقصى للمحاولات");
+  });
+
   it("should throw authorization error when non-admin calls admin server actions", async () => {
     (globalThis as any).__mockSecurityToken = enrolledStudentToken;
 

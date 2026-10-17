@@ -47,6 +47,7 @@ export default function QuizManagerClient({ chapters, initialQuizzes }: QuizMana
   const [quizTitle, setQuizTitle] = useState("");
   const [quizDuration, setQuizDuration] = useState("15");
   const [quizPassing, setQuizPassing] = useState("50");
+  const [quizMaxAttempts, setQuizMaxAttempts] = useState("3");
   const [quizMandatory, setQuizMandatory] = useState(true);
   const [quizChapterId, setQuizChapterId] = useState(chapters.length > 0 ? chapters[0].id : "");
   const [quizLoading, setQuizLoading] = useState(false);
@@ -77,6 +78,7 @@ export default function QuizManagerClient({ chapters, initialQuizzes }: QuizMana
           title: quizTitle,
           duration: quizDuration,
           passingScore: quizPassing,
+          maxAttempts: quizMaxAttempts,
           isMandatory: quizMandatory,
           chapterId: quizChapterId,
         }),
@@ -200,7 +202,7 @@ export default function QuizManagerClient({ chapters, initialQuizzes }: QuizMana
                     required
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="block font-semibold text-slate-650 mb-1">مدة الاختبار (بالدقائق)</label>
                     <input
@@ -219,6 +221,18 @@ export default function QuizManagerClient({ chapters, initialQuizzes }: QuizMana
                       value={quizPassing}
                       onChange={(e) => setQuizPassing(e.target.value)}
                       placeholder="50"
+                      className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none text-center"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-slate-650 mb-1">حد المحاولات</label>
+                    <input
+                      type="number"
+                      value={quizMaxAttempts}
+                      onChange={(e) => setQuizMaxAttempts(e.target.value)}
+                      placeholder="3"
+                      min="1"
                       className="w-full px-3 py-2 border border-slate-200 focus:border-physicsCyan-500 rounded-lg outline-none text-center"
                       required
                     />

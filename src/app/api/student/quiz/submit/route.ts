@@ -45,7 +45,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Grade MCQ Questions
+    // 3. Enforce maximum attempt thresholds per student per quiz
+    const attemptCount = await db.quizAttempt.count({
+      where: {
+        userId: user.id,
+        quizId: quiz.id,
+      },
+    });
+
+    const maxAttempts = quiz.maxAttempts ?? 3;
+    if (attemptCount >= maxAttempts) {
+      return NextResponse.json(
+        { error: `لقد استنفدت الحد الأقصى للمحاولات المسموح بها لهذا الاختبار (${maxAttempts} محاولات)` },
+        { status: 403 }
+      );
+    }
+
+    // 4. Grade MCQ Questions
     const mcqQuestions = quiz.questions.filter((q) => q.type === "MCQ");
     let correctCount = 0;
 
@@ -59,7 +75,7 @@ export async function POST(request: NextRequest) {
     // Score is correct MCQ percentage (or 100% if no MCQs)
     const score = mcqQuestions.length > 0 ? (correctCount / mcqQuestions.length) * 100 : 100;
 
-    // 3. Save Quiz Attempt
+    // 5. Save Quiz Attempt
     const attempt = await db.quizAttempt.create({
       data: {
         userId: user.id,
@@ -70,7 +86,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 4. Generate WhatsApp notification link & dispatch
+    // 6. Generate WhatsApp notification link & dispatch
     const waMessage = WhatsAppTemplates.quizGrade(user.name, quiz.title, Math.round(score), quiz.passingScore);
     const waResult = await sendWhatsAppNotification({
       phone: user.phone,
@@ -78,11 +94,31 @@ export async function POST(request: NextRequest) {
       type: "QUIZ_GRADE",
     });
 
+    // 7. Security: Exclude correct answers and explanations from student response payload
+    const sanitizedQuestions = quiz.questions.map((q) => {
+      const studentAnswer = answers[q.id];
+      const isMcq = q.type === "MCQ";
+      const isCorrect = isMcq && studentAnswer !== undefined && Number(studentAnswer) === q.correctOption;
+
+      return {
+        id: q.id,
+        quizId: q.quizId,
+        text: q.text,
+        imageUrl: q.imageUrl,
+        type: q.type,
+        options: q.options,
+        studentAnswer: studentAnswer !== undefined ? studentAnswer : null,
+        isCorrect,
+        // Intentionally excluded: correctOption, explanation
+      };
+    });
+
     return NextResponse.json({
       message: "تم تسليم الاختبار بنجاح",
       score,
       attemptId: attempt.id,
-      questions: quiz.questions,
+      attemptsRemaining: Math.max(0, maxAttempts - (attemptCount + 1)),
+      questions: sanitizedQuestions,
       whatsapp: waResult,
     });
   } catch (error: any) {

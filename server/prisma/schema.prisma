@@ -137,6 +137,7 @@ model Quiz {
   title        String
   duration     Int           // Duration in minutes
   passingScore Int           @default(50) // Minimum percentage score required to pass (0 - 100)
+  maxAttempts  Int           @default(3)  // Maximum allowed attempts per student
   isMandatory  Boolean       @default(true)
   chapterId    String
   chapter      Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)

@@ -21,6 +21,12 @@ export class CreateExamDto {
   @IsBoolean({ message: 'حالة إجبارية الاختبار يجب أن تكون قيمة منطقية' })
   isMandatory?: boolean;
 
+  @IsOptional()
+  @IsInt({ message: 'الحد الأقصى للمحاولات يجب أن يكون رقماً صحيحاً' })
+  @Min(1)
+  @Max(20)
+  maxAttempts?: number;
+
   @IsNotEmpty({ message: 'معرف الفصل الدراسي مطلوب' })
   @IsString({ message: 'معرف الفصل يجب أن يكون نصاً' })
   chapterId!: string;

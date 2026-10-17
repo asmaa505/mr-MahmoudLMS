@@ -55,16 +55,15 @@ export default async function StudentQuizPage({ params }: QuizPageProps) {
     orderBy: { submittedAt: "desc" },
   });
 
-  // Security: Do not expose correct answers or explanations to active test takers
+  // Security: Do not expose model answers or explanations to students
   const sanitizedQuiz = {
     ...quiz,
-    questions: pastAttempts.length > 0
-      ? quiz.questions
-      : quiz.questions.map((q) => ({
-          ...q,
-          correctOption: null,
-          explanation: null,
-        })),
+    maxAttempts: quiz.maxAttempts ?? 3,
+    questions: quiz.questions.map((q) => ({
+      ...q,
+      correctOption: null,
+      explanation: null,
+    })),
   };
 
   return (

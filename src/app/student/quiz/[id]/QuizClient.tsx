@@ -22,6 +22,7 @@ interface Quiz {
   title: string;
   duration: number; // in minutes
   passingScore: number;
+  maxAttempts?: number;
   isMandatory: boolean;
   questions: Question[];
   chapter: {
@@ -177,16 +178,29 @@ export default function QuizClient({ quiz, user, pastAttempts }: QuizClientProps
                 <span className="text-slate-500 text-[10px] block">درجة النجاح</span>
                 <span className="font-bold text-slate-700 text-sm">%{quiz.passingScore}</span>
               </div>
+              <div className="p-3 bg-slate-50 rounded-xl text-center min-w-[90px] border border-slate-100">
+                <span className="text-slate-500 text-[10px] block">المحاولات المتاحة</span>
+                <span className="font-bold text-slate-700 text-sm">
+                  {Math.max(0, (quiz.maxAttempts ?? 3) - pastAttempts.length)} من {quiz.maxAttempts ?? 3}
+                </span>
+              </div>
             </div>
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex justify-end">
-            <button
-              onClick={startQuiz}
-              className="px-8 py-3 bg-physicsCyan-600 hover:bg-physicsCyan-500 text-white font-bold rounded-xl text-sm transition shadow-md shadow-physicsCyan-500/10"
-            >
-              بدء محاولة جديدة
-            </button>
+            {pastAttempts.length >= (quiz.maxAttempts ?? 3) ? (
+              <div className="px-6 py-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>تم استنفاد الحد الأقصى للمحاولات المسموح بها ({quiz.maxAttempts ?? 3} محاولات)</span>
+              </div>
+            ) : (
+              <button
+                onClick={startQuiz}
+                className="px-8 py-3 bg-physicsCyan-600 hover:bg-physicsCyan-500 text-white font-bold rounded-xl text-sm transition shadow-md shadow-physicsCyan-500/10"
+              >
+                بدء محاولة جديدة ({Math.max(0, (quiz.maxAttempts ?? 3) - pastAttempts.length)} متبقية)
+              </button>
+            )}
           </div>
         </div>
 
@@ -463,7 +477,8 @@ export default function QuizClient({ quiz, user, pastAttempts }: QuizClientProps
                   <div className="grid sm:grid-cols-2 gap-3 mr-4">
                     {questionOptions.map((opt, oIdx) => {
                       const optLabel = ["أ", "ب", "ج", "د"][oIdx] || `${oIdx + 1}`;
-                      const isCorrectOpt = oIdx === question.correctOption;
+                      const hasModelAnswer = question.correctOption !== null && question.correctOption !== undefined;
+                      const isCorrectOpt = hasModelAnswer && oIdx === question.correctOption;
                       const isStudentChoice = studentAns !== undefined && Number(studentAns) === oIdx;
 
                       let cardStyle = "border-slate-200 text-slate-650 bg-slate-50/50";
@@ -473,8 +488,13 @@ export default function QuizClient({ quiz, user, pastAttempts }: QuizClientProps
                         cardStyle = "border-emerald-500 bg-emerald-50/30 text-emerald-900";
                         badgeIcon = <span className="text-[10px] text-emerald-600 font-bold">(الإجابة الصحيحة)</span>;
                       } else if (isStudentChoice) {
-                        cardStyle = "border-red-500 bg-red-50/30 text-red-900";
-                        badgeIcon = <span className="text-[10px] text-red-650 font-bold">(إجابتك الخطأ)</span>;
+                        if (hasModelAnswer) {
+                          cardStyle = "border-red-500 bg-red-50/30 text-red-900";
+                          badgeIcon = <span className="text-[10px] text-red-650 font-bold">(إجابتك الخطأ)</span>;
+                        } else {
+                          cardStyle = "border-physicsCyan-500 bg-physicsCyan-50/30 text-physicsCyan-900";
+                          badgeIcon = <span className="text-[10px] text-physicsCyan-700 font-bold">(إجابتك المختارة)</span>;
+                        }
                       }
 
                       return (

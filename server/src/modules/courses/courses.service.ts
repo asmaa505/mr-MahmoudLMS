@@ -199,81 +199,90 @@ export class CoursesService {
   async unlockCourseWithCode(userId: string, rawCode: string) {
     const cleanCode = rawCode.trim().toUpperCase();
 
-    const activationCode = await this.prisma.activationCode.findUnique({
-      where: { code: cleanCode },
-      include: {
-        course: true,
-        lesson: {
-          include: {
-            chapter: {
-              include: {
-                course: true,
+    // Process redemption inside an isolated database transaction to prevent concurrent exploitation
+    return await this.prisma.$transaction(async (tx) => {
+      const activationCode = await tx.activationCode.findUnique({
+        where: { code: cleanCode },
+        include: {
+          course: true,
+          lesson: {
+            include: {
+              chapter: {
+                include: {
+                  course: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      });
 
-    if (!activationCode) {
-      throw new NotFoundException('كود التفعيل غير صحيح أو غير موجود');
-    }
+      if (!activationCode) {
+        throw new NotFoundException('كود التفعيل غير صحيح أو غير موجود');
+      }
 
-    if (activationCode.isUsed) {
-      throw new BadRequestException('هذا الكود مستخدم من قبل');
-    }
+      if (activationCode.isUsed) {
+        throw new BadRequestException('هذا الكود مستخدم من قبل');
+      }
 
-    let targetCourseId = activationCode.courseId;
-    if (activationCode.lessonId && activationCode.lesson) {
-      targetCourseId = activationCode.lesson.chapter.courseId;
-    }
+      let targetCourseId = activationCode.courseId;
+      if (activationCode.lessonId && activationCode.lesson) {
+        targetCourseId = activationCode.lesson.chapter.courseId;
+      }
 
-    if (!targetCourseId) {
-      throw new BadRequestException('كود التفعيل غير مقترن بكورس دراسي صالح');
-    }
+      if (!targetCourseId) {
+        throw new BadRequestException('كود التفعيل غير مقترن بكورس دراسي صالح');
+      }
 
-    // Check if user is already enrolled
-    const existing = await this.prisma.enrollment.findUnique({
-      where: {
-        userId_courseId: {
-          userId,
-          courseId: targetCourseId,
+      // Check if user is already enrolled
+      const existing = await tx.enrollment.findUnique({
+        where: {
+          userId_courseId: {
+            userId,
+            courseId: targetCourseId,
+          },
         },
-      },
-    });
+      });
 
-    if (existing) {
-      throw new ConflictException('أنت مشترك بالفعل في هذا الكورس');
-    }
+      if (existing) {
+        throw new ConflictException('أنت مشترك بالفعل في هذا الكورس');
+      }
 
-    // Atomic transaction: create enrollment & mark code used
-    const [enrollment] = await this.prisma.$transaction([
-      this.prisma.enrollment.create({
-        data: {
-          userId,
-          courseId: targetCourseId,
+      // Atomically transition code status to USED instantly to prevent race conditions
+      const updateResult = await tx.activationCode.updateMany({
+        where: {
+          id: activationCode.id,
+          isUsed: false,
         },
-      }),
-      this.prisma.activationCode.update({
-        where: { id: activationCode.id },
         data: {
           isUsed: true,
           usedById: userId,
           usedAt: new Date(),
         },
-      }),
-    ]);
+      });
 
-    const courseTitle =
-      activationCode.course?.title ||
-      activationCode.lesson?.chapter.course.title ||
-      'الكورس';
+      if (updateResult.count === 0) {
+        throw new BadRequestException('هذا الكود مستخدم من قبل');
+      }
 
-    return {
-      message: `تم بنجاح تفعيل واشتراك في: ${courseTitle}`,
-      enrollment,
-      courseId: targetCourseId,
-    };
+      const enrollment = await tx.enrollment.create({
+        data: {
+          userId,
+          courseId: targetCourseId,
+        },
+      });
+
+      const courseTitle =
+        activationCode.course?.title ||
+        activationCode.lesson?.chapter.course.title ||
+        'الكورس';
+
+      return {
+        message: `تم بنجاح تفعيل واشتراك في: ${courseTitle}`,
+        enrollment,
+        courseId: targetCourseId,
+      };
+    });
   }
 
   private async ensureCourseExists(id: string) {

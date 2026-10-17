@@ -41,6 +41,7 @@ export class ExamsService {
         title: dto.title.trim(),
         duration: dto.duration,
         passingScore: dto.passingScore ?? 50,
+        maxAttempts: dto.maxAttempts ?? 3,
         isMandatory: dto.isMandatory ?? true,
         chapterId: dto.chapterId,
       },
@@ -162,11 +163,18 @@ export class ExamsService {
         orderBy: { submittedAt: 'desc' },
       });
 
+      const attemptsCount = await this.prisma.quizAttempt.count({
+        where: { userId: user.id, quizId: quiz.id },
+      });
+
       return {
         id: quiz.id,
         title: quiz.title,
         duration: quiz.duration,
         passingScore: quiz.passingScore,
+        maxAttempts: quiz.maxAttempts ?? 3,
+        attemptsCount,
+        attemptsRemaining: Math.max(0, (quiz.maxAttempts ?? 3) - attemptsCount),
         isMandatory: quiz.isMandatory,
         questionsCount: sanitizedQuestions.length,
         questions: sanitizedQuestions,
@@ -254,6 +262,22 @@ export class ExamsService {
         });
       }
 
+      // 3.5. Enforce maximum attempt thresholds per student per quiz
+      const attemptCount = await this.prisma.quizAttempt.count({
+        where: {
+          userId,
+          quizId: quizData.id,
+        },
+      });
+
+      const maxAttempts = quizData.maxAttempts ?? 3;
+      if (attemptCount >= maxAttempts) {
+        throw new ForbiddenException({
+          message: `لقد استنفدت الحد الأقصى للمحاولات المسموح بها لهذا الاختبار (${maxAttempts} محاولات).`,
+          errorCode: ERROR_CODES.EXAM_ALREADY_SUBMITTED,
+        });
+      }
+
       // 4. Automated Grading Engine
       const questions: any[] = quizData.questions;
       let totalEarnedPoints = 0;
@@ -291,9 +315,8 @@ export class ExamsService {
           imageUrl: q.imageUrl,
           options: parsedOptions,
           studentAnswer: studentAns !== undefined ? Number(studentAns) : null,
-          correctOption: q.correctOption,
           isCorrect,
-          explanation: q.explanation,
+          // Intentionally omitted: correctOption, explanation to protect academic integrity
         };
       });
 
@@ -321,6 +344,7 @@ export class ExamsService {
         score,
         passed,
         passingScore: quizData.passingScore,
+        attemptsRemaining: Math.max(0, maxAttempts - (attemptCount + 1)),
         totalQuestions: questions.length,
         correctAnswersCount,
         review,

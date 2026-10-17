@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "غير مصرح بالوصول" }, { status: 401 });
     }
 
-    const { title, duration, passingScore, isMandatory, chapterId } = await request.json();
+    const { title, duration, passingScore, maxAttempts, isMandatory, chapterId } = await request.json();
     if (!title || !duration || !chapterId) {
       return NextResponse.json({ error: "بيانات ناقصة" }, { status: 400 });
     }
@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
         title,
         duration: parseInt(duration),
         passingScore: parseInt(passingScore) || 50,
+        maxAttempts: maxAttempts !== undefined ? parseInt(maxAttempts) : 3,
         isMandatory: isMandatory === true,
         chapterId,
       },
