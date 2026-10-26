@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
     // Generate 6-digit numeric OTP code
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store in cache/Redis with TTL 900 seconds (15 minutes)
-    await saveOtp(email, otp, 900);
+    // Store in cache/Redis with TTL 900 seconds (15 minutes) and strict expiration timestamp
+    const otpRecord = await saveOtp(email, otp, 900);
 
     // Build reset link
     const origin =
@@ -83,24 +83,49 @@ export async function POST(request: NextRequest) {
     const resetLink = `${origin}/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`;
 
     // AC3: Send HTML email template containing OTP & reset link
-    await sendPasswordResetEmail({
+    const emailResult = await sendPasswordResetEmail({
       to: email,
       otp,
       resetLink,
       userName: user.name,
     });
 
+    if (!emailResult.success) {
+      console.error("[ForgotPassword API Error] Email delivery failed:", {
+        email,
+        error: emailResult.error,
+        code: emailResult.code,
+        details: emailResult.details,
+      });
+
+      return NextResponse.json(
+        {
+          error:
+            emailResult.error ||
+            "فشل إرسال كود التحقق بسبب خطأ في إعدادات خادم البريد (SMTP). يرجى مراجعة إعدادات البريد والمحاولة لاحقاً.",
+          code: emailResult.code || "EMAIL_DELIVERY_FAILED",
+          details: emailResult.details,
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
         message: "تم إرسال كود التحقق بنجاح إلى بريدك الإلكتروني",
+        expiresAt: otpRecord.expiresAt,
+        expiresAtDate: otpRecord.expiresAtDate,
       },
       { status: 200 }
     );
   } catch (error: any) {
     console.error("Forgot Password Error:", error);
     return NextResponse.json(
-      { error: "حدث خطأ أثناء معالجة طلب استعادة كلمة المرور" },
+      {
+        error: error?.userFriendlyMessage || error?.message || "حدث خطأ أثناء معالجة طلب استعادة كلمة المرور",
+        code: error?.code || "INTERNAL_ERROR",
+      },
       { status: 500 }
     );
   }

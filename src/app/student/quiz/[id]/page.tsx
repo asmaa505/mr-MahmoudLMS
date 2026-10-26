@@ -3,6 +3,7 @@ import { getAuthUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import QuizClient from "./QuizClient";
+import { inspectQuizPrerequisites } from "@/lib/quiz-lock";
 
 interface QuizPageProps {
   params: Promise<{ id: string }>;
@@ -32,17 +33,12 @@ export default async function StudentQuizPage({ params }: QuizPageProps) {
     redirect("/student");
   }
 
-  // 2. Check if student is enrolled in the course this quiz belongs to
-  const enrollment = await db.enrollment.findUnique({
-    where: {
-      userId_courseId: {
-        userId: user.id,
-        courseId: quiz.chapter.courseId,
-      },
-    },
-  });
-
-  if (!enrollment) {
+  // 2. Server-side validation of mandatory quiz locks and prerequisite completion
+  const prereqCheck = await inspectQuizPrerequisites(user.id, quizId, user.role);
+  if (!prereqCheck.allowed) {
+    if (quiz.chapter?.courseId) {
+      redirect(`/student/course/${quiz.chapter.courseId}`);
+    }
     redirect("/student");
   }
 

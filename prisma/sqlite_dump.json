@@ -1,0 +1,1320 @@
+{
+  "User": [
+    {
+      "id": "2d2543f8-d20a-4b79-b90d-a8a300b7d9a4",
+      "name": "الأستاذ محمود الشحات",
+      "phone": "01000000000",
+      "password": "$2a$10$Deusx28IvaXk9HxXP3BVvewQqg8bh/MkEwohWp04C4sjffQvqhvkm",
+      "role": "ADMIN",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "3",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1787936023909,
+      "email": null
+    },
+    {
+      "id": "3e2462a7-ad6a-4b78-b17b-9a74318fabcd",
+      "name": "عمر خالد (طالب 3 ثانوي)",
+      "phone": "01111111111",
+      "password": "$2a$10$o/cbfUYbGTTSWQgOHPa8beIis4g5LXv6R9IrENbSFA20mqa370uV6",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "3",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1787936024012,
+      "email": null
+    },
+    {
+      "id": "6a541aa7-b457-4bbb-aed4-24ed5107d475",
+      "name": "اسماء",
+      "phone": "01030981351",
+      "password": "$2a$10$vm0mFtf26r5aRJr21YD.MeaGLthrCJAtItf.CaqiTpzyAs0C1KtCy",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "3",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1788033723123,
+      "email": null
+    },
+    {
+      "id": "79ef6483-5312-4251-a928-ec53c773e5a0",
+      "name": "اسماء",
+      "phone": "01030981341",
+      "password": "$2a$10$LcfVFfCNjbj/XGd3XLggIevSqZFPN0z7uSHGnLJ.TMvy5opRYMgly",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "3",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1788037934665,
+      "email": null
+    },
+    {
+      "id": "4cca068b-d1fa-4e32-a01b-4fa93c86f22c",
+      "name": "ld",
+      "phone": "010309813412",
+      "password": "$2a$10$du.MtcQVom2JdlChOMIsNOgp.qErGdPaO8p3TUSMIeFIpKwGpCbeq",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "3",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1788212381789,
+      "email": null
+    },
+    {
+      "id": "0fe2221a-d7de-4af5-a5a0-78fbc352bc3d",
+      "name": "bbbb",
+      "phone": "010309813413",
+      "password": "$2a$10$lp3OiOxh3wGk4yKsM8nyme.DxWblaXa/EUFj/UTAvtvxAI7YYw9te",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "3",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1788212594654,
+      "email": null
+    },
+    {
+      "id": "ca04dcaa-c195-4259-9037-d6f6556c75e2",
+      "name": "سارة محمد (طالبة 2 ثانوي)",
+      "phone": "01222222222",
+      "password": "$2a$10$o/cbfUYbGTTSWQgOHPa8beIis4g5LXv6R9IrENbSFA20mqa370uV6",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "2",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789579357451,
+      "email": null
+    },
+    {
+      "id": "74e48ced-67ce-44ad-aff3-8c470b23ebad",
+      "name": "يوسف علي (طالب 1 ثانوي)",
+      "phone": "01555555555",
+      "password": "$2a$10$o/cbfUYbGTTSWQgOHPa8beIis4g5LXv6R9IrENbSFA20mqa370uV6",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "1",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789579357457,
+      "email": null
+    },
+    {
+      "id": "66816e2f-bdbd-4215-b02c-53e3a772071b",
+      "name": "زياد حسام (قيد الانتظار)",
+      "phone": "01099998877",
+      "password": "$2a$10$o/cbfUYbGTTSWQgOHPa8beIis4g5LXv6R9IrENbSFA20mqa370uV6",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 1,
+      "grade": "3",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789579357464,
+      "email": null
+    },
+    {
+      "id": "9af072e1-8220-4b40-9063-b740fea7d01e",
+      "name": "بوت 1",
+      "phone": "01000000001",
+      "password": "$2a$10$1OGDFih58rOnAp11KI2CNehSlcaQZwnGqfMBrVO9WrXlTvnANLH.u",
+      "role": "STUDENT",
+      "isApproved": 0,
+      "isBlocked": 0,
+      "grade": "الصف الأول الثانوي",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789594165462,
+      "email": null
+    },
+    {
+      "id": "b227c764-4dd0-412f-9319-c60ca56bab9f",
+      "name": "بوت 2",
+      "phone": "01000000002",
+      "password": "$2a$10$48okLiiXbvC3pSQT48o8RuruqiAdnAxUc./uDxcqxcyTApMzrXqf.",
+      "role": "STUDENT",
+      "isApproved": 0,
+      "isBlocked": 0,
+      "grade": "الصف الأول الثانوي",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789594165563,
+      "email": null
+    },
+    {
+      "id": "477fa264-4ac4-49a6-934d-6d7b4596c319",
+      "name": "بوت 3",
+      "phone": "01000000003",
+      "password": "$2a$10$kFVvRasc7Psm.SrXKAwKKOPqNVZrZxBZvtNPFABMRxfi8Mubt6CkC",
+      "role": "STUDENT",
+      "isApproved": 0,
+      "isBlocked": 0,
+      "grade": "الصف الأول الثانوي",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789594165683,
+      "email": null
+    },
+    {
+      "id": "f30907e2-0cd8-40a0-873d-1b49a7f838a9",
+      "name": "بوت 4",
+      "phone": "01000000004",
+      "password": "$2a$10$DCNCSxggd9G3D9MdKQmobeVxsAxDvcL8PxAur2tWOOA5fa298Fr22",
+      "role": "STUDENT",
+      "isApproved": 0,
+      "isBlocked": 0,
+      "grade": "الصف الأول الثانوي",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789594165791,
+      "email": null
+    },
+    {
+      "id": "bd21245b-11eb-4a23-91d5-fadcdd24db82",
+      "name": "بوت 5",
+      "phone": "01000000005",
+      "password": "$2a$10$BBkrFvLz1J.sfkQ.uBLS6.0GlhQpfAwGk3M6UaFrMK/XFS1CKuUWO",
+      "role": "STUDENT",
+      "isApproved": 0,
+      "isBlocked": 0,
+      "grade": "الصف الأول الثانوي",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789594165895,
+      "email": null
+    },
+    {
+      "id": "a7360fb7-5987-498e-80d4-fc917e56b582",
+      "name": "بوت 6",
+      "phone": "01000000006",
+      "password": "$2a$10$I95XHammT1kvq1YBjf01sufbBZTQcw0RHy4FodHm8NoGo8Pw77vI2",
+      "role": "STUDENT",
+      "isApproved": 0,
+      "isBlocked": 0,
+      "grade": "الصف الأول الثانوي",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789594165999,
+      "email": null
+    },
+    {
+      "id": "15af00a0-9359-4028-82ab-a4cdd02e1832",
+      "name": "بوت 7",
+      "phone": "01000000007",
+      "password": "$2a$10$rthbEDdzlSmDUVmqvPvkAuuOBDLW7YnJ..yHclmlhmPu3nyLjqDGC",
+      "role": "STUDENT",
+      "isApproved": 0,
+      "isBlocked": 0,
+      "grade": "الصف الأول الثانوي",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789594166104,
+      "email": null
+    },
+    {
+      "id": "682f2936-6130-4754-b1e4-96229cb09c49",
+      "name": "بوت 8",
+      "phone": "01000000008",
+      "password": "$2a$10$2n6DISEAWa3q.JTBhuuaiuMLTOjFpQupXSYIxgxXWBPWLRZ41je9q",
+      "role": "STUDENT",
+      "isApproved": 0,
+      "isBlocked": 0,
+      "grade": "الصف الأول الثانوي",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789594166209,
+      "email": null
+    },
+    {
+      "id": "dbbf7e69-4984-4548-81cb-56bc06b8d7d7",
+      "name": "اسماء مارية",
+      "phone": "01030981331",
+      "password": "$2a$10$rvGejAE/Q27aKOlhymbFbO3OtYCRBlMi9SoRCXm69Rq.MBJUklpoC",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "1",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789636850011,
+      "email": null
+    },
+    {
+      "id": "694c2f61-f664-4213-8edc-aa43c3378126",
+      "name": "بوت 9",
+      "phone": "01000000009",
+      "password": "$2a$10$NNAWy2bDkWBfdW76/kdowuJXef1plEmm/KuDLME6vG3ggyMN5.Gm.",
+      "role": "STUDENT",
+      "isApproved": 0,
+      "isBlocked": 0,
+      "grade": "الصف الأول الثانوي",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1789643881780,
+      "email": null
+    },
+    {
+      "id": "7c681dcd-7424-4a6d-8e58-68fd00602553",
+      "name": "طالب تجريببي",
+      "phone": "010 09791223",
+      "password": "$2a$10$P/vIk977/hMlYxrBEHsyouZXJUUBZ7J2TmUzIHqLPpPUUz5Y6Dlg.",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "3",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1790453655075,
+      "email": null
+    },
+    {
+      "id": "f84e1dc1-9167-45f5-b7c3-d851d5cdc0b6",
+      "name": "طالب تجريبي 2",
+      "phone": "01024962933",
+      "password": "$2a$10$Q7k/6rlKJOIipwfpI09leeeyP.SJ/pZo/Izg4V7Rt3Yd2suTF0LnG",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "1",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1790454088243,
+      "email": null
+    },
+    {
+      "id": "38c65861-d1fd-4306-b55a-5646142781e9",
+      "name": "طالب تجريببي 2",
+      "phone": "0 10 24962933",
+      "password": "$2a$10$XhgxYdpraWRF3hX94xD5kOkO8h5xiWD9VfRq2Y7/BaUDuR9NWweIq",
+      "role": "STUDENT",
+      "isApproved": 1,
+      "isBlocked": 0,
+      "grade": "1",
+      "parentPhone": null,
+      "subscriptionDate": "2026-10-12 22:49:04",
+      "createdAt": 1790454619385,
+      "email": null
+    }
+  ],
+  "Session": [
+    {
+      "id": "5d276bbb-4805-4cc4-a7f1-db72a4cfa685",
+      "userId": "74e48ced-67ce-44ad-aff3-8c470b23ebad",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3NGU0OGNlZC02N2NlLTQ0YWQtYWZmMy04YzQ3MGIyM2ViYWQiLCJyb2xlIjoiU1RVREVOVCIsIm5hbWUiOiLZitmI2LPZgSDYudmE2YogKNi32KfZhNioIDEg2KvYp9mG2YjZiikiLCJwaG9uZSI6IjAxNTU1NTU1NTU1Iiwic2Vzc2lvbklkIjoiMDJkNGVlMjQtNWYwYy00YjAzLWEyZGMtZjQzNmZlMGY3OTFkIiwiaWF0IjoxNzg5NjM2MDgzLCJleHAiOjE3OTAyNDA4ODN9.RetCQ3gfMFlxZWrVkcGhyYFvj-YzceZMSJWVKJH1Y0M",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+      "ipAddress": "::1",
+      "createdAt": 1789636083380
+    },
+    {
+      "id": "b72e3079-c830-42b4-b6e9-19176014c667",
+      "userId": "3e2462a7-ad6a-4b78-b17b-9a74318fabcd",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTI0NjJhNy1hZDZhLTRiNzgtYjE3Yi05YTc0MzE4ZmFiY2QiLCJyb2xlIjoiU1RVREVOVCIsIm5hbWUiOiLYudmF2LEg2K7Yp9mE2K8gKNi32KfZhNioIDMg2KvYp9mG2YjZiikiLCJwaG9uZSI6IjAxMTExMTExMTExIiwic2Vzc2lvbklkIjoiYmU2OTZkMGEtMTFkMC00Y2U2LTliNTItOTBhYmI1NTVhYjQ1IiwiaWF0IjoxNzkwNDUzMTYxLCJleHAiOjE3OTEwNTc5NjF9.OVFwiu8x-XcWtvueHRAjfQrnj6pFPRF5MxhJnx5gu4I",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+      "ipAddress": "::1",
+      "createdAt": 1790453161020
+    }
+  ],
+  "Course": [
+    {
+      "id": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "title": "الفيزياء الكهربية والحديثة - الصف الثالث الثانوي",
+      "description": "شرح كامل ومفصل لمنهج الفيزياء الكهربية وقوانين كيرشوف والفيزياء الحديثة مع حل مئات المسائل.",
+      "image": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop",
+      "grade": "3",
+      "isPublished": 1,
+      "createdAt": 1787936024021
+    },
+    {
+      "id": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "title": "الميكانيكا والحرارة - الصف الأول الثانوي",
+      "description": "أساسيات الفيزياء الكلاسيكية وقوانين نيوتن والحركة الدائرية مع تطبيقات عملية.",
+      "image": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop",
+      "grade": "1",
+      "isPublished": 1,
+      "createdAt": 1787936024028
+    },
+    {
+      "id": "a245f934-a4ac-490f-a57b-e88744528878",
+      "title": "الحديثة",
+      "description": "سبثنتى",
+      "image": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop",
+      "grade": "3",
+      "isPublished": 1,
+      "createdAt": 1788076242201
+    },
+    {
+      "id": "66e3a27d-ae1a-435f-ab8b-8657e29d1eda",
+      "title": "الفيزياء الكهربية والحديثة - الصف الثالث الثانوي",
+      "description": "شرح كامل ومفصل لمنهج الفيزياء الكهربية وقوانين كيرشوف والفيزياء الحديثة مع حل مئات المسائل.",
+      "image": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop",
+      "grade": "3",
+      "isPublished": 1,
+      "createdAt": 1788079445959
+    },
+    {
+      "id": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "title": "الميكانيكا والحرارة - الصف الأول الثانوي",
+      "description": "أساسيات الفيزياء الكلاسيكية وقوانين نيوتن والحركة الدائرية مع تطبيقات عملية.",
+      "image": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=600&auto=format&fit=crop",
+      "grade": "1",
+      "isPublished": 1,
+      "createdAt": 1788079445967
+    },
+    {
+      "id": "88549cc4-58eb-4806-ba49-c870d60d0e3d",
+      "title": "تاراتير",
+      "description": null,
+      "image": "/uploads/images/1790452428894-logo-favicon-d7eba47a.png",
+      "grade": "1",
+      "isPublished": 1,
+      "createdAt": 1790452433107
+    }
+  ],
+  "Chapter": [
+    {
+      "id": "3b0fc875-752c-4e0a-8cee-6c518803f2d3",
+      "title": "الفصل الأول: التيار الكهربي وقانون أوم",
+      "order": 1,
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "createdAt": 1787936024034
+    },
+    {
+      "id": "dd3038a5-4f53-4e17-a4aa-b86351f1d2fb",
+      "title": "الدرس الاول",
+      "order": 1,
+      "courseId": "a245f934-a4ac-490f-a57b-e88744528878",
+      "createdAt": 1788076278130
+    },
+    {
+      "id": "8abf7d7c-d3d7-4275-bd5c-ee3bb5384605",
+      "title": "الفصل الأول: التيار الكهربي وقانون أوم",
+      "order": 1,
+      "courseId": "66e3a27d-ae1a-435f-ab8b-8657e29d1eda",
+      "createdAt": 1788079445973
+    },
+    {
+      "id": "503200cb-b1de-4fab-9f47-4607954fec1d",
+      "title": "ikjung",
+      "order": 1,
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "createdAt": 1789579678920
+    },
+    {
+      "id": "14fde6e1-9ef1-44a6-a0a4-7c4e2d592999",
+      "title": "فرح",
+      "order": 1,
+      "courseId": "88549cc4-58eb-4806-ba49-c870d60d0e3d",
+      "createdAt": 1790452463229
+    }
+  ],
+  "Lecture": [
+    {
+      "id": "62c8f0dc-ff6e-41a4-bfc1-71dba79e74aa",
+      "title": "المحاضرة الأولى: مقدمة في التيار الكهربي وشدة التيار",
+      "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "duration": "45:00",
+      "order": 1,
+      "chapterId": "3b0fc875-752c-4e0a-8cee-6c518803f2d3",
+      "createdAt": 1787936024042
+    },
+    {
+      "id": "502b7b75-a1c7-4b5e-86e7-d59ec0d915dc",
+      "title": "المحاضرة الثانية: المقاومة الكهربية وقانون أوم",
+      "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "duration": "60:00",
+      "order": 2,
+      "chapterId": "3b0fc875-752c-4e0a-8cee-6c518803f2d3",
+      "createdAt": 1787936024048
+    },
+    {
+      "id": "8d355104-33ee-414e-ae2c-b78bcd7496df",
+      "title": "المحاضرة الأولى: مقدمة في التيار الكهربي وشدة التيار",
+      "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "duration": "45:00",
+      "order": 1,
+      "chapterId": "8abf7d7c-d3d7-4275-bd5c-ee3bb5384605",
+      "createdAt": 1788079445979
+    },
+    {
+      "id": "a3f61722-f957-4f76-ba8c-ab33c9f76c4f",
+      "title": "المحاضرة الثانية: المقاومة الكهربية وقانون أوم",
+      "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "duration": "60:00",
+      "order": 2,
+      "chapterId": "8abf7d7c-d3d7-4275-bd5c-ee3bb5384605",
+      "createdAt": 1788079445985
+    },
+    {
+      "id": "b305c123-747c-4c52-9497-7f6350bddfc0",
+      "title": "alfarida",
+      "videoUrl": "/uploads/videos/1789579701245-heroVideo-c2095e42.mp4",
+      "duration": "00:00",
+      "order": 1,
+      "chapterId": "503200cb-b1de-4fab-9f47-4607954fec1d",
+      "createdAt": 1789579774242
+    },
+    {
+      "id": "ef12fc07-7d9d-4139-b24a-7e9d151889c0",
+      "title": "وةءب",
+      "videoUrl": "/uploads/videos/1789581584497-vid2-dcb81418.mp4",
+      "duration": "00:00",
+      "order": 2,
+      "chapterId": "503200cb-b1de-4fab-9f47-4607954fec1d",
+      "createdAt": 1789581590248
+    },
+    {
+      "id": "fd108b72-1e45-48a0-804f-2d78d1d4fa08",
+      "title": "فرج1",
+      "videoUrl": "/uploads/videos/1790452573664-ALFARIDA5-a8a8c311.mp4",
+      "duration": "00:00",
+      "order": 1,
+      "chapterId": "14fde6e1-9ef1-44a6-a0a4-7c4e2d592999",
+      "createdAt": 1790452577720
+    },
+    {
+      "id": "fd75d561-67cb-471f-875e-e6cdfdcb6873",
+      "title": "فرح2",
+      "videoUrl": "/uploads/videos/1790452666444-ALFARIDA5-ef06a238.mp4",
+      "duration": "1",
+      "order": 2,
+      "chapterId": "14fde6e1-9ef1-44a6-a0a4-7c4e2d592999",
+      "createdAt": 1790452715706
+    }
+  ],
+  "Homework": [
+    {
+      "id": "53d71fa2-76ec-470f-a102-5b115ddabf05",
+      "title": "واجب المحاضرة الأولى والثانية - المقاومات",
+      "pdfUrl": "/uploads/homework_1.pdf",
+      "chapterId": "3b0fc875-752c-4e0a-8cee-6c518803f2d3",
+      "createdAt": 1787936024054
+    },
+    {
+      "id": "faf0547f-6d08-4af8-a3d7-b1013e11da69",
+      "title": "واجب المحاضرة الأولى والثانية - المقاومات",
+      "pdfUrl": "/uploads/homework_1.pdf",
+      "chapterId": "8abf7d7c-d3d7-4275-bd5c-ee3bb5384605",
+      "createdAt": 1788079445990
+    },
+    {
+      "id": "500a3268-8dac-4abc-bcbc-1949687a8989",
+      "title": "kjuhn",
+      "pdfUrl": "/uploads/documents/1789579745366-___________________-eccba0ad.pdf",
+      "chapterId": "503200cb-b1de-4fab-9f47-4607954fec1d",
+      "createdAt": 1789579754327
+    },
+    {
+      "id": "ef67c51b-5ab8-4def-8e56-304df8ef12c4",
+      "title": "فرح1.1",
+      "pdfUrl": "/uploads/documents/1790452546099-AF-f6d37752.pdf",
+      "chapterId": "14fde6e1-9ef1-44a6-a0a4-7c4e2d592999",
+      "createdAt": 1790452547873
+    }
+  ],
+  "Quiz": [
+    {
+      "id": "58c02545-4ab8-4676-9be2-6ca732cae570",
+      "title": "اختبار تجريبي على قانون أوم وتوصيل المقاومات",
+      "duration": 15,
+      "passingScore": 50,
+      "maxAttempts": 3,
+      "isMandatory": 1,
+      "chapterId": "3b0fc875-752c-4e0a-8cee-6c518803f2d3",
+      "createdAt": 1787936024061
+    },
+    {
+      "id": "75486daf-611e-4938-bb55-2c10aef619a1",
+      "title": "اختبار تجريبي على قانون أوم وتوصيل المقاومات",
+      "duration": 15,
+      "passingScore": 50,
+      "maxAttempts": 3,
+      "isMandatory": 1,
+      "chapterId": "8abf7d7c-d3d7-4275-bd5c-ee3bb5384605",
+      "createdAt": 1788079445996
+    },
+    {
+      "id": "7894c56b-f0f5-4706-bbbf-283457319024",
+      "title": "تلريبنرن",
+      "duration": 30,
+      "passingScore": 30,
+      "maxAttempts": 3,
+      "isMandatory": 1,
+      "chapterId": "3b0fc875-752c-4e0a-8cee-6c518803f2d3",
+      "createdAt": 1790451917160
+    }
+  ],
+  "Question": [
+    {
+      "id": "4610e490-65db-478c-a788-c0752f487adb",
+      "quizId": "58c02545-4ab8-4676-9be2-6ca732cae570",
+      "text": "إذا زاد طول موصل معدني إلى الضعف وقلت مساحة مقطعه إلى النصف، فإن مقاومته الكهربية الكهربائية $R$ تصبح:",
+      "imageUrl": null,
+      "type": "MCQ",
+      "options": "[\"تزداد إلى الضعف\",\"تزداد إلى أربعة أمثالها\",\"تقل إلى النصف\",\"تظل ثابتة\"]",
+      "correctOption": 1,
+      "explanation": "العلاقة هي $R = \\rho_e \\frac{l}{A}$. عند مضاعفة الطول $l \\rightarrow 2l$ وتقليل المساحة $A \\rightarrow A/2$ تصبح المقاومة الجديدة $R' = \\rho_e \\frac{2l}{A/2} = 4 R$."
+    },
+    {
+      "id": "12de178a-e8ea-4a0e-a4e7-14c7f2d7104a",
+      "quizId": "58c02545-4ab8-4676-9be2-6ca732cae570",
+      "text": "سلكان من نفس المادة طول الأول $l_1 = 5\\text{ m}$ وطول الثاني $l_2 = 10\\text{ m}$، فإذا كانت لهما نفس مساحة المقطع، فإن النسبة بين مقاومتهما $R_1 : R_2$ هي:",
+      "imageUrl": null,
+      "type": "MCQ",
+      "options": "[\"$1:2$\",\"$2:1$\",\"$1:4$\",\"$4:1$\"]",
+      "correctOption": 0,
+      "explanation": "بما أن السلكين من نفس المادة ولهما نفس مساحة المقطع فإن المقاومة تتناسب طردياً مع الطول: $\\frac{R_1}{R_2} = \\frac{l_1}{l_2} = \\frac{5}{10} = \\frac{1}{2}$."
+    },
+    {
+      "id": "4655a921-b2b9-48e9-ad05-e6d6f582b6a8",
+      "quizId": "58c02545-4ab8-4676-9be2-6ca732cae570",
+      "text": "اكتب نص قانون أوم للدائرة المغلقة بصيغة رياضية مفسراً دلالة الرموز المستخدمة.",
+      "imageUrl": null,
+      "type": "WRITTEN",
+      "options": null,
+      "correctOption": null,
+      "explanation": "الصيغة الرياضية لقانون أوم للدائرة المغلقة هي: $I = \\frac{V_{B}}{R + r}$ حيث: $I$ شدة التيار الكلي، $V_B$ القوة الدافعة الكهربية للمصدر، $R$ المقاومة الخارجية الكلية، $r$ المقاومة الداخلية للمصدر."
+    },
+    {
+      "id": "5c03006f-998a-4b45-9e6d-96b6b6fcd40f",
+      "quizId": "75486daf-611e-4938-bb55-2c10aef619a1",
+      "text": "إذا زاد طول موصل معدني إلى الضعف وقلت مساحة مقطعه إلى النصف، فإن مقاومته الكهربية الكهربائية $R$ تصبح:",
+      "imageUrl": null,
+      "type": "MCQ",
+      "options": "[\"تزداد إلى الضعف\",\"تزداد إلى أربعة أمثالها\",\"تقل إلى النصف\",\"تظل ثابتة\"]",
+      "correctOption": 1,
+      "explanation": "العلاقة هي $R = \\rho_e \\frac{l}{A}$. عند مضاعفة الطول $l \\rightarrow 2l$ وتقليل المساحة $A \\rightarrow A/2$ تصبح المقاومة الجديدة $R' = \\rho_e \\frac{2l}{A/2} = 4 R$."
+    },
+    {
+      "id": "ff7b5d9c-8006-4d08-a928-fe07268c39ae",
+      "quizId": "75486daf-611e-4938-bb55-2c10aef619a1",
+      "text": "سلكان من نفس المادة طول الأول $l_1 = 5\\text{ m}$ وطول الثاني $l_2 = 10\\text{ m}$، فإذا كانت لهما نفس مساحة المقطع، فإن النسبة بين مقاومتهما $R_1 : R_2$ هي:",
+      "imageUrl": null,
+      "type": "MCQ",
+      "options": "[\"$1:2$\",\"$2:1$\",\"$1:4$\",\"$4:1$\"]",
+      "correctOption": 0,
+      "explanation": "بما أن السلكين من نفس المادة ولهما نفس مساحة المقطع فإن المقاومة تتناسب طردياً مع الطول: $\\frac{R_1}{R_2} = \\frac{l_1}{l_2} = \\frac{5}{10} = \\frac{1}{2}$."
+    },
+    {
+      "id": "f09080f5-72ea-4d6f-82bb-213428e6cd87",
+      "quizId": "75486daf-611e-4938-bb55-2c10aef619a1",
+      "text": "اكتب نص قانون أوم للدائرة المغلقة بصيغة رياضية مفسراً دلالة الرموز المستخدمة.",
+      "imageUrl": null,
+      "type": "WRITTEN",
+      "options": null,
+      "correctOption": null,
+      "explanation": "الصيغة الرياضية لقانون أوم للدائرة المغلقة هي: $I = \\frac{V_{B}}{R + r}$ حيث: $I$ شدة التيار الكلي، $V_B$ القوة الدافعة الكهربية للمصدر، $R$ المقاومة الخارجية الكلية، $r$ المقاومة الداخلية للمصدر."
+    },
+    {
+      "id": "b782a592-ba40-4186-bda3-cc0c6bc8b4f1",
+      "quizId": "7894c56b-f0f5-4706-bbbf-283457319024",
+      "text": "تغلياةالاؤي؟؟؟؟؟؟؟؟؟؟؟؟؟",
+      "imageUrl": "/uploads/images/1790451973022-l-c0e5cdaa.jpg",
+      "type": "WRITTEN",
+      "options": null,
+      "correctOption": null,
+      "explanation": "تالاربتالاتيبلارقنتلاات"
+    }
+  ],
+  "Enrollment": [
+    {
+      "id": "0f698ab7-39f8-4927-b1cb-1e87f39d0d1a",
+      "userId": "79ef6483-5312-4251-a928-ec53c773e5a0",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "unlockedAt": 1788038058436
+    },
+    {
+      "id": "9e052019-d8cb-46a1-b2d1-27f29d722b92",
+      "userId": "4cca068b-d1fa-4e32-a01b-4fa93c86f22c",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "unlockedAt": 1788212468101
+    },
+    {
+      "id": "d61e1df1-96ed-4e0e-99d6-793f73bf83ad",
+      "userId": "3e2462a7-ad6a-4b78-b17b-9a74318fabcd",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "unlockedAt": 1789579357474
+    },
+    {
+      "id": "36b09543-cd69-4f68-958d-99b048962c5c",
+      "userId": "66816e2f-bdbd-4215-b02c-53e3a772071b",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "unlockedAt": 1789582085012
+    },
+    {
+      "id": "5e2a4461-3b1a-4c6c-aca9-6df8cfbacde8",
+      "userId": "66816e2f-bdbd-4215-b02c-53e3a772071b",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "unlockedAt": 1789582475107
+    },
+    {
+      "id": "bc596136-6c16-41be-a04d-8606f0778881",
+      "userId": "74e48ced-67ce-44ad-aff3-8c470b23ebad",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "unlockedAt": 1789583696122
+    },
+    {
+      "id": "654348c9-d596-45bf-8b67-e72417bdf101",
+      "userId": "dbbf7e69-4984-4548-81cb-56bc06b8d7d7",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "unlockedAt": 1789641961043
+    },
+    {
+      "id": "edec5703-39ab-47fe-bae5-2f6290fd751f",
+      "userId": "38c65861-d1fd-4306-b55a-5646142781e9",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "unlockedAt": 1790454809928
+    },
+    {
+      "id": "350f8f60-6603-4fc6-814e-3465f1715a3b",
+      "userId": "38c65861-d1fd-4306-b55a-5646142781e9",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "unlockedAt": 1790455039009
+    },
+    {
+      "id": "fd662c60-bfc9-4292-b3c2-34603b1c2303",
+      "userId": "38c65861-d1fd-4306-b55a-5646142781e9",
+      "courseId": "88549cc4-58eb-4806-ba49-c870d60d0e3d",
+      "unlockedAt": 1790455163979
+    }
+  ],
+  "ActivationCode": [
+    {
+      "id": "479a966f-1be5-4ba8-a901-b84a13d5062c",
+      "code": "PHY-ELEC-333",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1787936024075
+    },
+    {
+      "id": "83e4cb5e-f95f-42a3-a6d3-ac58a1e1ecf3",
+      "code": "PHY-MECH-111",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1787936024075
+    },
+    {
+      "id": "d3f4003a-8b16-46f3-8f6f-d7b8118d4000",
+      "code": "PHY-LECT-999",
+      "courseId": null,
+      "lectureId": "502b7b75-a1c7-4b5e-86e7-d59ec0d915dc",
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1787936024075
+    },
+    {
+      "id": "21aeaa35-7e82-454b-bd90-66d97f64fe2c",
+      "code": "PHY-KZU7-Q9WZ",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788033966568
+    },
+    {
+      "id": "fe262efa-a549-4b42-a06a-0d0750b26875",
+      "code": "PHY-897K-87D5",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788033966581
+    },
+    {
+      "id": "a446ed9e-d230-42dd-9bc2-120d5631da82",
+      "code": "PHY-6X45-DABD",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788033966593
+    },
+    {
+      "id": "253846e8-d126-4901-baec-13444a7f32d3",
+      "code": "PHY-U2EA-AW8H",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788033966603
+    },
+    {
+      "id": "bf713837-6163-49f5-aa8c-f13fdcb76590",
+      "code": "PHY-B583-7FER",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788033966615
+    },
+    {
+      "id": "b6af172a-b274-4d44-86a7-c69dd0ff484b",
+      "code": "PHY-SALC-M7KP",
+      "courseId": null,
+      "lectureId": "502b7b75-a1c7-4b5e-86e7-d59ec0d915dc",
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788034012105
+    },
+    {
+      "id": "8d58403a-5398-4a8c-b1b4-ff53c0c869b6",
+      "code": "PHY-ZR5C-DZBQ",
+      "courseId": null,
+      "lectureId": "502b7b75-a1c7-4b5e-86e7-d59ec0d915dc",
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788034012116
+    },
+    {
+      "id": "3ab1ae0b-d9fc-42c9-b2fd-d9d7995bd822",
+      "code": "PHY-AYL8-DS4C",
+      "courseId": null,
+      "lectureId": "502b7b75-a1c7-4b5e-86e7-d59ec0d915dc",
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788034012127
+    },
+    {
+      "id": "3f6f3e4e-6b30-46fc-bd86-4d9fc262739b",
+      "code": "PHY-455R-B8XK",
+      "courseId": null,
+      "lectureId": "502b7b75-a1c7-4b5e-86e7-d59ec0d915dc",
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788034012139
+    },
+    {
+      "id": "b02de4c1-d64f-4c9f-9158-4d33f0f1198a",
+      "code": "PHY-FKBM-QTU4",
+      "courseId": null,
+      "lectureId": "502b7b75-a1c7-4b5e-86e7-d59ec0d915dc",
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1788034012152
+    },
+    {
+      "id": "d02cc1dc-750c-4cba-9315-5a1706549e4e",
+      "code": "MEMO-JSPR-U6NN",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "lectureId": null,
+      "isUsed": 1,
+      "usedById": "4cca068b-d1fa-4e32-a01b-4fa93c86f22c",
+      "assignedToId": null,
+      "usedAt": 1788212468090,
+      "assignedAt": null,
+      "createdAt": 1788034743034
+    },
+    {
+      "id": "73a5860b-2066-4a0d-8f7b-3bf803131fc3",
+      "code": "PHY-9CH5-7LR6",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "lectureId": null,
+      "isUsed": 1,
+      "usedById": "79ef6483-5312-4251-a928-ec53c773e5a0",
+      "assignedToId": null,
+      "usedAt": 1788038058433,
+      "assignedAt": null,
+      "createdAt": 1788038038718
+    },
+    {
+      "id": "9a99405f-4dcf-4017-906e-20d913aea3b7",
+      "code": "PHYSICS-2026-CODE1",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1789579357482
+    },
+    {
+      "id": "31f8d48e-944b-4ffd-8354-adca36cf4635",
+      "code": "PHYSICS-2026-CODE2",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1789579357489
+    },
+    {
+      "id": "22791536-3fc6-44cc-a2e5-0ca5610ec2a9",
+      "code": "PHYSICS-2026-CODE3",
+      "courseId": "c037fc3d-bb7f-4bab-b5b3-e1fd9da8aa0e",
+      "lectureId": null,
+      "isUsed": 1,
+      "usedById": "66816e2f-bdbd-4215-b02c-53e3a772071b",
+      "assignedToId": null,
+      "usedAt": 1789582085010,
+      "assignedAt": null,
+      "createdAt": 1789579357495
+    },
+    {
+      "id": "95deb51f-2a99-4c60-8b5c-8bdcf494d35d",
+      "code": "MMM-B3G2-MTSK",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 1,
+      "usedById": "66816e2f-bdbd-4215-b02c-53e3a772071b",
+      "assignedToId": null,
+      "usedAt": 1789582475104,
+      "assignedAt": null,
+      "createdAt": 1789582424544
+    },
+    {
+      "id": "af8f5109-2179-4436-9a49-2514919d1280",
+      "code": "KKK-47LA-MWHY",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 1,
+      "usedById": "74e48ced-67ce-44ad-aff3-8c470b23ebad",
+      "assignedToId": null,
+      "usedAt": 1789583696119,
+      "assignedAt": null,
+      "createdAt": 1789583632959
+    },
+    {
+      "id": "4b1c68f6-6d8d-49c1-a519-389c27a3d7d9",
+      "code": "KKK-DE9T-PC3D",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1789583632975
+    },
+    {
+      "id": "312499ff-c646-487a-9d3e-f557b37906d7",
+      "code": "KKK-KTDY-AQEC",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1789583632985
+    },
+    {
+      "id": "6f7fdc12-b268-4da6-ab3e-f478080832e3",
+      "code": "KKK-LGF8-AFJL",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1789583632994
+    },
+    {
+      "id": "dd940352-f781-45a5-8ea6-3af817a56665",
+      "code": "KKK-8GA3-CMFD",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 1,
+      "usedById": "dbbf7e69-4984-4548-81cb-56bc06b8d7d7",
+      "assignedToId": "dbbf7e69-4984-4548-81cb-56bc06b8d7d7",
+      "usedAt": 1789641961040,
+      "assignedAt": 1789638997631,
+      "createdAt": 1789583633005
+    },
+    {
+      "id": "63a69307-864b-4524-af60-0c9328462d20",
+      "code": "MEMO-P5FR-FA8D",
+      "courseId": "a245f934-a4ac-490f-a57b-e88744528878",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": "dbbf7e69-4984-4548-81cb-56bc06b8d7d7",
+      "usedAt": null,
+      "assignedAt": 1789641214379,
+      "createdAt": 1789641198951
+    },
+    {
+      "id": "fbe72dad-3920-4e32-a0b2-bb5b8c82a581",
+      "code": "MEMO-3AZR-LQB6",
+      "courseId": "a245f934-a4ac-490f-a57b-e88744528878",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1789641198969
+    },
+    {
+      "id": "e07fbc2c-b6b8-405c-a331-3b45ab0e8816",
+      "code": "MEMO-W4JA-WVEW",
+      "courseId": "a245f934-a4ac-490f-a57b-e88744528878",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1789641198979
+    },
+    {
+      "id": "177a3188-ff86-404a-878d-23983d2795cd",
+      "code": "MEMO-KAQX-MGEF",
+      "courseId": "a245f934-a4ac-490f-a57b-e88744528878",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1789641198990
+    },
+    {
+      "id": "064abb84-c122-4c90-89c4-6588fb6ce228",
+      "code": "MEMO-QYMP-88VG",
+      "courseId": "a245f934-a4ac-490f-a57b-e88744528878",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1789641199000
+    },
+    {
+      "id": "e1e5c969-9e38-462d-a15d-2e76ec677cea",
+      "code": "ASMAA-8Z8Q-QWKE",
+      "courseId": "66e3a27d-ae1a-435f-ab8b-8657e29d1eda",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": "dbbf7e69-4984-4548-81cb-56bc06b8d7d7",
+      "usedAt": null,
+      "assignedAt": 1790451253346,
+      "createdAt": 1790450997963
+    },
+    {
+      "id": "34190ae0-34d8-40d5-9856-a0f56b8a9566",
+      "code": "ASMAA-Q6T4-L3JZ",
+      "courseId": "66e3a27d-ae1a-435f-ab8b-8657e29d1eda",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790450997978
+    },
+    {
+      "id": "41477b9c-8221-40ac-84a6-80fcf539e011",
+      "code": "ASMAA-EETN-S8DT",
+      "courseId": "66e3a27d-ae1a-435f-ab8b-8657e29d1eda",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790450997989
+    },
+    {
+      "id": "dc32ce48-885c-4ab3-a2d8-61a6393d2b22",
+      "code": "ASMAA-E76F-YYY5",
+      "courseId": "66e3a27d-ae1a-435f-ab8b-8657e29d1eda",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790450998000
+    },
+    {
+      "id": "c71c0a4a-9c44-4936-8f67-e360e2a6ea69",
+      "code": "ASMAA-MRG9-4LUA",
+      "courseId": "66e3a27d-ae1a-435f-ab8b-8657e29d1eda",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790450998014
+    },
+    {
+      "id": "ad39968c-00f2-4725-a1b8-802db3557ba5",
+      "code": "MMM-UQZX-935K",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": "7c681dcd-7424-4a6d-8e58-68fd00602553",
+      "usedAt": null,
+      "assignedAt": 1790453846162,
+      "createdAt": 1790453829874
+    },
+    {
+      "id": "e239e2ac-eb11-4028-9539-80dce20c27b7",
+      "code": "FARAH-XABT-EQVD",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 1,
+      "usedById": "38c65861-d1fd-4306-b55a-5646142781e9",
+      "assignedToId": "f84e1dc1-9167-45f5-b7c3-d851d5cdc0b6",
+      "usedAt": 1790454809917,
+      "assignedAt": 1790454249646,
+      "createdAt": 1790454183668
+    },
+    {
+      "id": "d57f99f6-50a8-4b8d-8f5f-d766820041ae",
+      "code": "FFF-6NLG-B6Z3",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": "f84e1dc1-9167-45f5-b7c3-d851d5cdc0b6",
+      "usedAt": null,
+      "assignedAt": 1790454919982,
+      "createdAt": 1790454894997
+    },
+    {
+      "id": "d5164900-b955-4dd4-851a-efe6ca1291f5",
+      "code": "FFF-DHXE-JML7",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790454895013
+    },
+    {
+      "id": "1ac2cea1-1f5f-4b01-a05f-a7dcb87319b4",
+      "code": "FFF-LHDT-WK84",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790454895023
+    },
+    {
+      "id": "72bf957b-472e-44d6-be2b-7aba1342c61b",
+      "code": "FFF-MH6U-F5PK",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790454895032
+    },
+    {
+      "id": "9a7e1408-5f9b-47cd-96a0-697bb0298511",
+      "code": "FFF-EJYS-DGDP",
+      "courseId": "8e09c1c6-a113-47ed-99ef-405a17873a4a",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790454895042
+    },
+    {
+      "id": "9a5f8a09-a7f3-4cf0-b6ac-a72d734da5dd",
+      "code": "AAA-NRZT-RTES",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 1,
+      "usedById": "38c65861-d1fd-4306-b55a-5646142781e9",
+      "assignedToId": "f84e1dc1-9167-45f5-b7c3-d851d5cdc0b6",
+      "usedAt": 1790455039005,
+      "assignedAt": 1790454958559,
+      "createdAt": 1790454942424
+    },
+    {
+      "id": "0dc0a573-6f2a-4ae8-a749-0cb633735896",
+      "code": "AAA-TML8-KRT5",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790454942437
+    },
+    {
+      "id": "14cdc65c-596a-4f6f-abe7-f0e3661fc646",
+      "code": "AAA-S6LF-F5TZ",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790454942452
+    },
+    {
+      "id": "78146646-55ef-437c-a208-38ef49ebeac6",
+      "code": "AAA-U266-FZLP",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790454942461
+    },
+    {
+      "id": "1eb7c11b-1e2a-41d1-9cfc-5f437c1acbc3",
+      "code": "AAA-66SV-VRYA",
+      "courseId": "73a367cd-3a24-470f-819f-95945107c1ce",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790454942472
+    },
+    {
+      "id": "49e50cd1-b5a8-4ed3-bad9-47b85f5d7c27",
+      "code": "OOO-AL4B-WV8E",
+      "courseId": "88549cc4-58eb-4806-ba49-c870d60d0e3d",
+      "lectureId": null,
+      "isUsed": 1,
+      "usedById": "38c65861-d1fd-4306-b55a-5646142781e9",
+      "assignedToId": "f84e1dc1-9167-45f5-b7c3-d851d5cdc0b6",
+      "usedAt": 1790455163975,
+      "assignedAt": 1790455132320,
+      "createdAt": 1790455116400
+    },
+    {
+      "id": "1646e441-2c11-434f-b777-77059f16a8b0",
+      "code": "OOO-BCDQ-394S",
+      "courseId": "88549cc4-58eb-4806-ba49-c870d60d0e3d",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790455116414
+    },
+    {
+      "id": "6b98600c-9cec-43d8-90c9-d22d3f0c4555",
+      "code": "OOO-FVW4-JS9A",
+      "courseId": "88549cc4-58eb-4806-ba49-c870d60d0e3d",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790455116422
+    },
+    {
+      "id": "56bda072-a2a6-46b6-8844-108963a67359",
+      "code": "OOO-VLMZ-WYH8",
+      "courseId": "88549cc4-58eb-4806-ba49-c870d60d0e3d",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790455116430
+    },
+    {
+      "id": "03c8b851-5a2c-4033-90d9-38a28311e392",
+      "code": "OOO-4TWC-NU8T",
+      "courseId": "88549cc4-58eb-4806-ba49-c870d60d0e3d",
+      "lectureId": null,
+      "isUsed": 0,
+      "usedById": null,
+      "assignedToId": null,
+      "usedAt": null,
+      "assignedAt": null,
+      "createdAt": 1790455116438
+    }
+  ],
+  "QuizAttempt": [
+    {
+      "id": "32c183a0-06a0-4853-83a5-be8a7131d72e",
+      "userId": "79ef6483-5312-4251-a928-ec53c773e5a0",
+      "quizId": "58c02545-4ab8-4676-9be2-6ca732cae570",
+      "score": 0.0,
+      "answers": "{\"4610e490-65db-478c-a788-c0752f487adb\":0,\"12de178a-e8ea-4a0e-a4e7-14c7f2d7104a\":3}",
+      "startedAt": 1788038102706,
+      "submittedAt": 1788038102705
+    }
+  ],
+  "LessonProgress": [],
+  "WeeklyReport": []
+}

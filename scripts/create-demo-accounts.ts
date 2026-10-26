@@ -4,6 +4,11 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === "production") {
+    console.error("❌ Refusing to run create-demo-accounts in production environment!");
+    throw new Error("Demo accounts must NOT be created in production!");
+  }
+
   console.log("Creating/Updating demo accounts...");
 
   const adminPasswordHash = await bcrypt.hash("admin123", 10);

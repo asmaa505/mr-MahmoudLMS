@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "mahmoud-el-shahat-physics-lms-super-secret-key-2026";
+import { getJwtSecret } from "./auth";
 
 export interface VideoStreamTokenPayload {
   userId: string;
@@ -23,7 +22,7 @@ export function generateVideoStreamToken(userId: string, lectureId: string, role
       role,
       ip,
     },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: "15m" }
   );
 }
@@ -33,7 +32,7 @@ export function generateVideoStreamToken(userId: string, lectureId: string, role
  */
 export function verifyVideoStreamToken(token: string): VideoStreamTokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as VideoStreamTokenPayload;
+    return jwt.verify(token, getJwtSecret()) as VideoStreamTokenPayload;
   } catch (err) {
     return null;
   }

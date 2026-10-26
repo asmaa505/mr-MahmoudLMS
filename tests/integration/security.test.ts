@@ -162,6 +162,16 @@ describe("Security & Access Control Integration Tests", () => {
         courseId: testCourse.id,
       },
     });
+
+    // Mark testLecture completed for enrolledStudent so they satisfy initial prerequisite
+    await db.lessonProgress.create({
+      data: {
+        userId: enrolledStudent.id,
+        lectureId: testLecture.id,
+        isCompleted: true,
+        watchPercentage: 100,
+      },
+    });
   });
 
   afterAll(async () => {

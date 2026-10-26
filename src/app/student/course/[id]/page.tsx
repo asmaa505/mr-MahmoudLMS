@@ -79,6 +79,21 @@ export default async function StudentCoursePage({ params, searchParams }: Course
     return quizAttempts.some((a) => a.score >= passingScore);
   };
 
+  // 4. Fetch lecture progress for prerequisite evaluation
+  const lectureIds = course.chapters.flatMap((ch) => ch.lectures.map((l) => l.id));
+  const progresses = await db.lessonProgress.findMany({
+    where: {
+      userId: user.id,
+      lectureId: { in: lectureIds },
+    },
+  });
+
+  const isLectureCompleted = (lectureId?: string) => {
+    if (!lectureId) return true;
+    const p = progresses.find((item) => item.lectureId === lectureId);
+    return Boolean(p?.isCompleted) || (p?.watchPercentage ?? 0) >= 80;
+  };
+
   // Determine active lecture
   let activeLecture = null;
   const allLectures = course.chapters.flatMap((ch) => ch.lectures);
@@ -232,28 +247,53 @@ export default async function StudentCoursePage({ params, searchParams }: Course
                       {/* Quizzes */}
                       {chapter.quizzes.map((q) => {
                         const passed = isQuizPassed(q.id, q.passingScore);
+
+                        // Prerequisite validation:
+                        // 1. Mandatory quizzes in preceding chapters must be passed
+                        const prevChapters = course.chapters.filter((ch) => ch.order < chapter.order);
+                        const prevMandatoryQuizzes = prevChapters.flatMap((ch) => ch.quizzes.filter((pz) => pz.isMandatory));
+                        const prevQuizzesPassed = prevMandatoryQuizzes.every((pq) => isQuizPassed(pq.id, pq.passingScore));
+
+                        // 2. Initial prerequisite lecture of current chapter must be completed
+                        const prereqLectureCompleted = chapter.lectures.length > 0 ? isLectureCompleted(chapter.lectures[0]?.id) : true;
+
+                        const isLocked = user.role !== "ADMIN" && (!prevQuizzesPassed || !prereqLectureCompleted);
+
                         return (
-                          <Link
-                            key={q.id}
-                            href={`/student/quiz/${q.id}`}
-                            className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 mt-1 hover:text-physicsCyan-600 transition"
-                          >
-                            <span className="flex items-center gap-2">
-                              <HelpCircle className="w-4 h-4 text-indigo-500 shrink-0" />
-                              <span className="font-semibold text-slate-700">امتحان: {q.title}</span>
-                            </span>
-                            {passed ? (
-                              <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] rounded-md font-bold flex items-center gap-0.5 shrink-0">
-                                <CheckCircle className="w-3 h-3" />
-                                مجتاز
-                              </span>
+                          <div key={q.id}>
+                            {isLocked ? (
+                              <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 mt-1 text-slate-400 cursor-not-allowed">
+                                <span className="flex items-center gap-2">
+                                  <Lock className="w-4 h-4 text-slate-350 shrink-0" />
+                                  <span className="line-clamp-1">امتحان: {q.title}</span>
+                                </span>
+                                <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded-md font-medium shrink-0">
+                                  مغلق
+                                </span>
+                              </div>
                             ) : (
-                              <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 text-[10px] rounded-md font-bold flex items-center gap-0.5 shrink-0">
-                                <AlertTriangle className="w-3 h-3" />
-                                لم يمر بعد
-                              </span>
+                              <Link
+                                href={`/student/quiz/${q.id}`}
+                                className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 mt-1 hover:text-physicsCyan-600 transition"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <HelpCircle className="w-4 h-4 text-indigo-500 shrink-0" />
+                                  <span className="font-semibold text-slate-700">امتحان: {q.title}</span>
+                                </span>
+                                {passed ? (
+                                  <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] rounded-md font-bold flex items-center gap-0.5 shrink-0">
+                                    <CheckCircle className="w-3 h-3" />
+                                    مجتاز
+                                  </span>
+                                ) : (
+                                  <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 text-[10px] rounded-md font-bold flex items-center gap-0.5 shrink-0">
+                                    <AlertTriangle className="w-3 h-3" />
+                                    لم يمر بعد
+                                  </span>
+                                )}
+                              </Link>
                             )}
-                          </Link>
+                          </div>
                         );
                       })}
 

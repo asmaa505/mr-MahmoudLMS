@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import nodemailer, { Transporter } from "nodemailer";
 
 export interface SentEmailRecord {
   to: string;
@@ -7,6 +7,41 @@ export interface SentEmailRecord {
   resetLink: string;
   html: string;
   sentAt: Date;
+}
+
+export interface SendEmailOptions {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  from?: string;
+}
+
+export interface SendEmailResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+  code?: string;
+  details?: string;
+}
+
+export interface ParsedSmtpError {
+  code: string;
+  userFriendlyMessage: string;
+  technicalDetails: string;
+}
+
+// Custom Exception for Email Service Configuration & Delivery Failures
+export class EmailServiceError extends Error {
+  public readonly code: string;
+  public readonly technicalDetails?: string;
+
+  constructor(message: string, code: string = "EMAIL_DELIVERY_FAILED", technicalDetails?: string) {
+    super(message);
+    this.name = "EmailServiceError";
+    this.code = code;
+    this.technicalDetails = technicalDetails;
+  }
 }
 
 // In-memory record for testing & inspection
@@ -26,28 +61,237 @@ export function clearSentEmails(): void {
   sentEmailsHistory.length = 0;
 }
 
+// Allows injecting a mock or custom transporter for testing error handling scenarios
+let customTransporter: Transporter | null = null;
+
+export function setCustomTransporter(transporter: Transporter | null): void {
+  customTransporter = transporter;
+}
+
 /**
- * Creates Nodemailer transporter based on environment or fallback test transporter.
+ * Parses and categorizes Nodemailer / SMTP errors into actionable messages
+ * so administrators can immediately identify system misconfigurations.
  */
-function createTransporter() {
-  if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+export function parseSmtpError(error: any): ParsedSmtpError {
+  const errorCode = (error?.code || error?.name || "SMTP_ERROR").toString().toUpperCase();
+  const rawMessage = (error?.message || "Unknown SMTP error occurred").toString();
+  const response = error?.response ? error.response.toString() : "";
+  const command = error?.command ? error.command.toString() : "";
+
+  let userFriendlyMessage = "فشل في تسليم البريد الإلكتروني بسبب خطأ في إعدادات خادم البريد (SMTP).";
+
+  if (
+    errorCode === "EAUTH" ||
+    rawMessage.includes("Invalid login") ||
+    rawMessage.includes("authentication failed") ||
+    rawMessage.includes("Username and Password not accepted") ||
+    response.includes("535")
+  ) {
+    userFriendlyMessage =
+      "خطأ في مصادقة خادم البريد (SMTP Authentication Failed): اسم المستخدم أو كلمة المرور غير صحيحة. يرجى التحقق من متغيرات SMTP_USER و SMTP_PASS.";
+  } else if (
+    errorCode === "ECONNREFUSED" ||
+    rawMessage.includes("ECONNREFUSED") ||
+    rawMessage.includes("connection refused")
+  ) {
+    userFriendlyMessage =
+      "فشل الاتصال بخادم البريد (SMTP Connection Refused): تم رفض الاتصال بعنوان الخادم أو المنفذ المحدد. يرجى التحقق من SMTP_HOST و SMTP_PORT.";
+  } else if (
+    errorCode === "ETIMEDOUT" ||
+    errorCode === "ESOCKETTIMEDOUT" ||
+    rawMessage.includes("Connection timeout") ||
+    rawMessage.includes("timed out")
+  ) {
+    userFriendlyMessage =
+      "انتهت مهلة الاتصال بخادم البريد (SMTP Connection Timeout): تعذر إتمام الاتصال بخادم البريد في الوقت المحدد. يرجى مراجعة اتصال الشبكة وجدار الحماية.";
+  } else if (
+    errorCode === "ENOTFOUND" ||
+    rawMessage.includes("getaddrinfo ENOTFOUND") ||
+    rawMessage.includes("host not found")
+  ) {
+    userFriendlyMessage =
+      "تعذر العثور على خادم البريد (SMTP Host Not Found): عنوان الخادم (SMTP_HOST) غير صحيح أو لا يمكن الوصول إليه عبر DNS.";
+  } else if (
+    errorCode === "ESOCKET" ||
+    rawMessage.includes("self signed certificate") ||
+    rawMessage.includes("SSL") ||
+    rawMessage.includes("TLS")
+  ) {
+    userFriendlyMessage =
+      "فشل الاتصال الآمن بخادم البريد (SMTP TLS/SSL Handshake Error): خطأ في إعدادات شهادة الأمان أو بروتوكول التشفير.";
+  } else if (
+    errorCode === "EENVELOPE" ||
+    rawMessage.includes("No recipients defined") ||
+    rawMessage.includes("Invalid recipient")
+  ) {
+    userFriendlyMessage = "خطأ في بيانات عنوان البريد الإلكتروني: عنوان المرسل أو المستقبل غير صالح.";
+  } else if (errorCode === "ECONNRESET") {
+    userFriendlyMessage = "تمت إعادة تعيين الاتصال بخادم البريد بشكل غير متوقع (Connection Reset).";
   }
 
-  // Fallback stream / json transporter for local dev & testing
-  return nodemailer.createTransport({
-    streamTransport: true,
-    newline: "windows",
-    buffer: true,
-  });
+  const technicalDetails = [
+    `Code: ${errorCode}`,
+    `Message: ${rawMessage}`,
+    command ? `Command: ${command}` : null,
+    response ? `Response: ${response}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
+  return {
+    code: errorCode,
+    userFriendlyMessage,
+    technicalDetails,
+  };
+}
+
+/**
+ * Creates Nodemailer transporter based on environment or fallback test transporter.
+ * Wrapped in exception handling to prevent unhandled configuration crashes.
+ */
+export function createTransporter(): Transporter {
+  if (customTransporter) {
+    return customTransporter;
+  }
+
+  try {
+    const host = process.env.SMTP_HOST?.trim();
+    const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) || 587 : 587;
+    const user = process.env.SMTP_USER?.trim();
+    const pass = process.env.SMTP_PASS;
+    const secure = process.env.SMTP_SECURE === "true" || port === 465;
+
+    if (host && user) {
+      return nodemailer.createTransport({
+        host,
+        port,
+        secure,
+        auth: {
+          user,
+          pass: pass || "",
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      });
+    }
+
+    if (host) {
+      return nodemailer.createTransport({
+        host,
+        port,
+        secure,
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      });
+    }
+
+    // Fallback stream / json transporter for local dev & testing
+    return nodemailer.createTransport({
+      streamTransport: true,
+      newline: "windows",
+      buffer: true,
+    });
+  } catch (error: any) {
+    console.error("[EmailService] Transporter initialization error:", {
+      message: error?.message,
+      stack: error?.stack,
+    });
+    throw new EmailServiceError(
+      "فشل في تهيئة خادم البريد (Transporter Initialization Failed).",
+      "TRANSPORTER_INIT_ERROR",
+      error?.message
+    );
+  }
+}
+
+/**
+ * Verifies the SMTP transporter connection and credentials.
+ * Wrapped in exception handling blocks and logs failures internally.
+ */
+export async function verifyEmailConfiguration(): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+  code?: string;
+  details?: string;
+}> {
+  try {
+    const transporter = createTransporter();
+    await transporter.verify();
+
+    const isSmtpConfigured = !!(process.env.SMTP_HOST && process.env.SMTP_USER);
+    return {
+      success: true,
+      message: isSmtpConfigured
+        ? "تم الاتصال بخادم البريد الإلكتروني (SMTP) بنجاح والتحقق من الإعدادات."
+        : "تم التحقق: خدمة البريد تعمل بنجاح في وضع التطوير المحلي (Local Development Stream).",
+    };
+  } catch (error: any) {
+    console.error("[EmailService] SMTP configuration verification failed:", {
+      code: error?.code,
+      message: error?.message,
+      command: error?.command,
+      response: error?.response,
+      responseCode: error?.responseCode,
+      stack: error?.stack,
+    });
+
+    const parsed = parseSmtpError(error);
+
+    return {
+      success: false,
+      error: parsed.userFriendlyMessage,
+      code: parsed.code,
+      details: parsed.technicalDetails,
+    };
+  }
+}
+
+/**
+ * Sends a generic email message wrapped in exception handling blocks.
+ * Logs failure details internally and returns structured error response.
+ */
+export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
+  const { to, subject, html, text, from } = options;
+  const fromAddress = from || process.env.EMAIL_FROM || '"منصة الأستاذ محمود الشحات" <no-reply@mr-mahmoud.com>';
+
+  try {
+    const transporter = createTransporter();
+    const info = await transporter.sendMail({
+      from: fromAddress,
+      to,
+      subject,
+      html,
+      text,
+    });
+
+    return {
+      success: true,
+      messageId: info.messageId,
+    };
+  } catch (error: any) {
+    console.error("[EmailService] Failed to send email via transporter:", {
+      recipient: to,
+      subject,
+      code: error?.code,
+      message: error?.message,
+      command: error?.command,
+      response: error?.response,
+      responseCode: error?.responseCode,
+      stack: error?.stack,
+    });
+
+    const parsed = parseSmtpError(error);
+
+    return {
+      success: false,
+      error: parsed.userFriendlyMessage,
+      code: parsed.code,
+      details: parsed.technicalDetails,
+    };
+  }
 }
 
 /**
@@ -215,31 +459,23 @@ export function generatePasswordResetEmailHtml(params: {
 
 /**
  * Sends a password reset email with the OTP code and direct reset magic link.
+ * Wrapped in exception handling blocks, logging failure details internally
+ * while returning a clear, actionable error response to the client.
  */
 export async function sendPasswordResetEmail(params: {
   to: string;
   otp: string;
   resetLink: string;
   userName?: string;
-}): Promise<{ success: boolean; messageId?: string }> {
+}): Promise<SendEmailResult> {
   const { to, otp, resetLink, userName } = params;
-  const transporter = createTransporter();
-
-  const fromAddress = process.env.EMAIL_FROM || '"منصة الأستاذ محمود الشحات" <no-reply@mr-mahmoud.com>';
-  const subject = "كود استعادة كلمة المرور - منصة الفيزياء للأستاذ محمود الشحات";
-  const html = generatePasswordResetEmailHtml({ otp, resetLink, userName });
-
-  // Store in memory for testing/verification
-  sentEmailsHistory.push({
-    to,
-    subject,
-    otp,
-    resetLink,
-    html,
-    sentAt: new Date(),
-  });
 
   try {
+    const transporter = createTransporter();
+    const fromAddress = process.env.EMAIL_FROM || '"منصة الأستاذ محمود الشحات" <no-reply@mr-mahmoud.com>';
+    const subject = "كود استعادة كلمة المرور - منصة الفيزياء للأستاذ محمود الشحات";
+    const html = generatePasswordResetEmailHtml({ otp, resetLink, userName });
+
     const info = await transporter.sendMail({
       from: fromAddress,
       to,
@@ -247,16 +483,39 @@ export async function sendPasswordResetEmail(params: {
       html,
     });
 
+    // Store in memory for testing/verification only upon successful transmission
+    sentEmailsHistory.push({
+      to,
+      subject,
+      otp,
+      resetLink,
+      html,
+      sentAt: new Date(),
+    });
+
     return {
       success: true,
       messageId: info.messageId,
     };
-  } catch (error) {
-    console.error("Failed to send email via transporter:", error);
-    // If external SMTP fails, history was still recorded for test & audit
+  } catch (error: any) {
+    // Log failure details internally with full diagnostics
+    console.error("[EmailService] Failed to send password reset email via transporter:", {
+      recipient: to,
+      code: error?.code,
+      message: error?.message,
+      command: error?.command,
+      response: error?.response,
+      responseCode: error?.responseCode,
+      stack: error?.stack,
+    });
+
+    const parsed = parseSmtpError(error);
+
     return {
-      success: true,
-      messageId: "mock-sent-" + Date.now(),
+      success: false,
+      error: parsed.userFriendlyMessage,
+      code: parsed.code,
+      details: parsed.technicalDetails,
     };
   }
 }

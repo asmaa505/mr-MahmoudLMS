@@ -1,10 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { generateStrongPassword, validatePasswordStrength } from "../src/lib/production-security";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Starting seeding...");
+  const isProduction = process.env.NODE_ENV === "production";
+  console.log(`Starting seeding... [Environment: ${process.env.NODE_ENV || "development"}]`);
 
   // 1. Create Admin (Mr. Mahmud El-Shahat)
   const adminPhone = "01000000000";
@@ -14,7 +16,21 @@ async function main() {
 
   let adminUser;
   if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash("mahmoud123", 10);
+    let plainAdminPassword = process.env.ADMIN_PASSWORD || process.env.ADMIN_INITIAL_PASSWORD;
+    if (isProduction) {
+      if (plainAdminPassword) {
+        const check = validatePasswordStrength(plainAdminPassword);
+        if (!check.isStrong) {
+          throw new Error(`ADMIN_PASSWORD is too weak for production: ${check.reasons.join(", ")}`);
+        }
+      } else {
+        plainAdminPassword = generateStrongPassword(24);
+      }
+    } else {
+      plainAdminPassword = plainAdminPassword || "mahmoud123";
+    }
+
+    const hashedPassword = await bcrypt.hash(plainAdminPassword, 10);
     adminUser = await prisma.user.create({
       data: {
         name: "الأستاذ محمود الشحات",
@@ -26,10 +42,21 @@ async function main() {
         grade: "3",
       },
     });
-    console.log("Admin user created: محمود الشحات (01000000000 / mahmoud123)");
+    if (isProduction) {
+      console.log(`✓ Admin user created with secure generated password for ${adminPhone}: ${plainAdminPassword}`);
+    } else {
+      console.log(`Admin user created: محمود الشحات (${adminPhone} / ${plainAdminPassword})`);
+    }
   } else {
     adminUser = existingAdmin;
     console.log("Admin user already exists");
+  }
+
+  // In production, NEVER seed mock students, dummy courses, or test codes
+  if (isProduction) {
+    console.log("Production environment detected. Skipping demo student accounts and dummy activation codes.");
+    console.log("Seeding complete for production.");
+    return;
   }
 
   // 2. Create Student (Test Student)

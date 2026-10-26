@@ -43,12 +43,12 @@ export default async function StudentLayout({
               className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-physicsCyan-400 rounded-xl transition-all duration-300 py-1"
               aria-label="لوحة التحكم - منصة الفيزياء"
             >
-              <div className="relative overflow-hidden rounded-xl border border-physicsCyan-500/30 bg-[#0b1329] p-1 shadow-md group-hover:border-physicsCyan-400/60 group-hover:shadow-[0_0_20px_-2px_rgba(6,182,212,0.3)] transition-all duration-300">
+              <div className="relative overflow-hidden rounded-xl border border-physicsCyan-500/30 bg-[#0A1128] p-1 shadow-md group-hover:border-physicsCyan-400/60 group-hover:shadow-[0_0_20px_-2px_rgba(6,182,212,0.3)] transition-all duration-300">
                 <Image
-                  src="/Images/logo.jpg"
+                  src="/Images/final_logo.jpg"
                   alt="شعار منصة الأستاذ محمود الشحات للفيزياء"
                   width={150}
-                  height={80}
+                  height={84}
                   className="h-10 md:h-12 w-auto max-w-[120px] md:max-w-[150px] rounded-lg object-contain group-hover:scale-105 group-hover:opacity-95 transition-all duration-300"
                 />
               </div>

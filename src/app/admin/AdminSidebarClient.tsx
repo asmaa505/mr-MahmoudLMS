@@ -53,12 +53,12 @@ export default function AdminSidebarClient({ userName, logoutAction }: AdminSide
             className="flex items-center gap-2 group transition"
             aria-label="لوحة تحكم المعلم"
           >
-            <div className="relative overflow-hidden rounded-lg border border-physicsCyan-500/30 bg-[#0b1329] p-1 shadow-sm group-hover:border-physicsCyan-400/60 transition">
+            <div className="relative overflow-hidden rounded-lg border border-physicsCyan-500/30 bg-[#0A1128] p-1 shadow-sm group-hover:border-physicsCyan-400/60 transition">
               <Image
-                src="/Images/logo.jpg"
+                src="/Images/final_logo.jpg"
                 alt="شعار المنصة"
                 width={70}
-                height={35}
+                height={39}
                 className="h-7 w-auto max-w-[65px] rounded-[6px] object-contain group-hover:scale-105 transition"
               />
             </div>
@@ -95,12 +95,12 @@ export default function AdminSidebarClient({ userName, logoutAction }: AdminSide
             className="flex items-center gap-3 group transition"
             aria-label="لوحة تحكم المعلم"
           >
-            <div className="relative overflow-hidden rounded-xl border border-physicsCyan-500/30 bg-[#0b1329] p-1 shadow-md shadow-physicsCyan-500/10 group-hover:border-physicsCyan-400/60 transition duration-300">
+            <div className="relative overflow-hidden rounded-xl border border-physicsCyan-500/30 bg-[#0A1128] p-1 shadow-md shadow-physicsCyan-500/10 group-hover:border-physicsCyan-400/60 transition duration-300">
               <Image
-                src="/Images/logo.jpg"
+                src="/Images/final_logo.jpg"
                 alt="شعار منصة الأستاذ محمود الشحات للفيزياء"
                 width={90}
-                height={45}
+                height={50}
                 className="h-10 w-auto max-w-[80px] rounded-[10px] object-contain group-hover:scale-105 transition"
               />
             </div>

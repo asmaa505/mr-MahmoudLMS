@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyOtp, normalizeEmail } from "@/lib/otp";
+import { verifyOtpDetailed, normalizeEmail } from "@/lib/otp";
 import { z } from "zod";
 
 const verifyOtpSchema = z.object({
@@ -34,11 +34,27 @@ export async function POST(request: NextRequest) {
     const email = normalizeEmail(validation.data.email);
     const otp = validation.data.otp;
 
-    // AC4: Validate OTP against Redis / Cache
-    const isValid = await verifyOtp(email, otp);
-    if (!isValid) {
+    // AC1: Validate OTP against Redis / Cache with rate limiting & lock on consecutive failures
+    const result = await verifyOtpDetailed(email, otp);
+    if (result.locked) {
       return NextResponse.json(
-        { error: "كود التحقق غير صحيح أو انتهت صلاحيته" },
+        {
+          error:
+            result.error ||
+            "تم تجاوز الحد الأقصى للمحاولات غير الصحيحة لكود التحقق. تم قفل المحاولات مؤقتاً لحماية الحساب.",
+          locked: true,
+          remainingAttempts: 0,
+        },
+        { status: 429 }
+      );
+    }
+
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          error: result.error || "كود التحقق غير صحيح أو انتهت صلاحيته",
+          remainingAttempts: result.remainingAttempts,
+        },
         { status: 400 }
       );
     }

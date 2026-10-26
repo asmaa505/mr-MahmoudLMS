@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { sendWhatsAppNotification, WhatsAppTemplates } from "@/lib/whatsapp";
+import { inspectQuizPrerequisites } from "@/lib/quiz-lock";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,20 +29,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "الاختبار غير موجود" }, { status: 404 });
     }
 
-    // 2. Verify Student Enrollment in the Course
-    const enrollment = await db.enrollment.findUnique({
-      where: {
-        userId_courseId: {
-          userId: user.id,
-          courseId: quiz.chapter.courseId,
-        },
-      },
-    });
-
-    if (!enrollment) {
+    // 2. Validate Prerequisite Completion & Course Enrollment Server-Side
+    const prereqCheck = await inspectQuizPrerequisites(user.id, quizId, user.role);
+    if (!prereqCheck.allowed) {
       return NextResponse.json(
-        { error: "غير مصرح: يجب الاشتراك وتفعيل الكورس أولاً لتقديم هذا الاختبار" },
-        { status: 403 }
+        { error: prereqCheck.reason, code: prereqCheck.code },
+        { status: prereqCheck.status }
       );
     }
 

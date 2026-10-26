@@ -11,6 +11,15 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: "منصة الفيزياء | أ. محمود الشحات",
   description: "المنصة التعليمية الأولى للفيزياء - الأستاذ محمود الشحات",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/Images/final_logo_48x48.png", sizes: "48x48", type: "image/png" },
+    ],
+    apple: [
+      { url: "/Images/final_logo_square_512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({

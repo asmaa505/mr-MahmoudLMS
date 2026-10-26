@@ -8,6 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "test:integration": "vitest run",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "db:migrate-data": "tsx scripts/migrate-data.ts",
+    "db:purge-seed": "tsx scripts/purge-seed-data.ts",
+    "secure:production": "tsx scripts/secure-production.ts",
+    "credentials:rotate-admin": "tsx scripts/rotate-admin-password.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

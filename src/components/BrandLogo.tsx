@@ -21,24 +21,21 @@ const sizeConfig = {
   sm: {
     container: "h-8 w-auto max-w-[70px] rounded-lg p-0.5",
     imageWidth: 64,
-    imageHeight: 32,
-    objectFit: "object-contain",
+    imageHeight: 36,
     titleClass: "text-xs font-bold",
     subtitleClass: "text-[9px]",
   },
   md: {
     container: "h-10 md:h-12 w-auto max-w-[90px] md:max-w-[110px] rounded-xl p-1",
     imageWidth: 96,
-    imageHeight: 48,
-    objectFit: "object-contain",
+    imageHeight: 54,
     titleClass: "text-base md:text-lg font-bold tracking-wide",
     subtitleClass: "text-xs",
   },
   lg: {
     container: "h-12 md:h-14 w-auto max-w-[120px] md:max-w-[140px] rounded-2xl p-1",
     imageWidth: 120,
-    imageHeight: 60,
-    objectFit: "object-contain",
+    imageHeight: 67,
     titleClass: "text-lg md:text-xl font-extrabold tracking-wide",
     subtitleClass: "text-sm",
   },
@@ -46,7 +43,6 @@ const sizeConfig = {
     container: "h-12 md:h-16 w-auto max-w-[140px] md:max-w-[180px] rounded-2xl p-1",
     imageWidth: 180,
     imageHeight: 100,
-    objectFit: "object-contain",
     titleClass: "text-lg md:text-xl font-extrabold tracking-wide",
     subtitleClass: "text-xs md:text-sm",
   },
@@ -66,14 +62,14 @@ export default function BrandLogo({
     <div className={`inline-flex items-center gap-3 group transition-all duration-300 ${className}`}>
       {/* Logo Glow & Border Surface Container */}
       <div
-        className={`relative overflow-hidden ${currentSize.container} border border-physicsCyan-500/30 bg-[#0b1329] p-0.5 shadow-md shadow-physicsCyan-500/10 group-hover:border-physicsCyan-400/60 group-hover:shadow-[0_0_20px_-3px_rgba(6,182,212,0.3)] transition-all duration-300`}
+        className={`relative overflow-hidden ${currentSize.container} border border-physicsCyan-500/30 bg-[#0A1128] shadow-md shadow-physicsCyan-500/10 group-hover:border-physicsCyan-400/60 group-hover:shadow-[0_0_20px_-3px_rgba(6,182,212,0.3)] transition-all duration-300`}
       >
         <Image
-          src="/Images/logo.jpg"
+          src="/Images/final_logo.jpg"
           alt="شعار منصة الأستاذ محمود الشحات للفيزياء"
           width={currentSize.imageWidth}
           height={currentSize.imageHeight}
-          className={`w-full h-full rounded-[inherit] ${currentSize.objectFit} object-center group-hover:scale-105 group-hover:opacity-95 transition-all duration-300`}
+          className="w-full h-full object-contain rounded-[inherit] group-hover:scale-105 group-hover:opacity-95 transition-all duration-300"
           priority={size === "md" || size === "lg" || size === "xl"}
         />
       </div>

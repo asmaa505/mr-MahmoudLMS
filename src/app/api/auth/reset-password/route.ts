@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
-import { verifyOtp, deleteOtp, normalizeEmail } from "@/lib/otp";
+import { verifyOtpDetailed, deleteOtp, normalizeEmail } from "@/lib/otp";
 import { z } from "zod";
 
 const resetPasswordSchema = z
@@ -59,11 +59,24 @@ export async function POST(request: NextRequest) {
     const { email: rawEmail, otp, newPassword } = validation.data;
     const email = normalizeEmail(rawEmail);
 
-    // AC4: Validate OTP
-    const isOtpValid = await verifyOtp(email, otp);
-    if (!isOtpValid) {
+    // AC1: Validate OTP with brute-force protection
+    const otpResult = await verifyOtpDetailed(email, otp);
+    if (otpResult.locked) {
       return NextResponse.json(
-        { error: "كود التحقق غير صحيح أو انتهت صلاحيته" },
+        {
+          error:
+            otpResult.error ||
+            "تم تجاوز الحد الأقصى للمحاولات غير الصحيحة لكود التحقق. تم قفل المحاولات مؤقتاً لحماية الحساب.",
+          locked: true,
+          remainingAttempts: 0,
+        },
+        { status: 429 }
+      );
+    }
+
+    if (!otpResult.success) {
+      return NextResponse.json(
+        { error: otpResult.error || "كود التحقق غير صحيح أو انتهت صلاحيته" },
         { status: 400 }
       );
     }

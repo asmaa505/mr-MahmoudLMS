@@ -6,7 +6,7 @@ import { POST as loginHandler } from "@/app/api/auth/login/route";
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
-import { resetOtpStore, saveOtp } from "@/lib/otp";
+import { resetOtpStore, saveOtp, isOtpExpired, isOtpLocked, verifyOtpDetailed } from "@/lib/otp";
 import { getLastSentEmail, clearSentEmails } from "@/lib/email";
 
 vi.mock("next/headers", () => {
@@ -378,5 +378,245 @@ describe("Password Reset & OTP Flow (Forgot Password Feature)", () => {
 
     const body4 = await res4.json();
     expect(body4.error).toContain("تم تجاوز الحد المسموح به");
+  });
+
+  // ---------------------------------------------------------------------------
+  // Rate-Limit Password Reset Attempts: Consecutive Incorrect OTP Submissions
+  // ---------------------------------------------------------------------------
+  it("AC8: should lock or reject requests after 5 consecutive incorrect OTP submissions (HTTP 429)", async () => {
+    // 1. Generate valid OTP
+    const forgotReq = new NextRequest("http://localhost/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email: testEmail }),
+    });
+    await forgotPasswordHandler(forgotReq);
+
+    // Attempts 1 to 4: Each incorrect submission returns 400 and decreases remaining attempts
+    for (let i = 1; i <= 4; i++) {
+      const verifyReq = new NextRequest("http://localhost/api/auth/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ email: testEmail, otp: `99990${i}` }),
+      });
+      const res = await verifyOtpHandler(verifyReq);
+      expect(res.status).toBe(400);
+
+      const body = await res.json();
+      expect(body.error).toBe("كود التحقق غير صحيح أو انتهت صلاحيته");
+      expect(body.remainingAttempts).toBe(5 - i);
+    }
+
+    // Attempt 5: 5th consecutive incorrect submission triggers lockout with HTTP 429
+    const fifthReq = new NextRequest("http://localhost/api/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify({ email: testEmail, otp: "999905" }),
+    });
+    const fifthRes = await verifyOtpHandler(fifthReq);
+    expect(fifthRes.status).toBe(429);
+
+    const fifthBody = await fifthRes.json();
+    expect(fifthBody.locked).toBe(true);
+    expect(fifthBody.remainingAttempts).toBe(0);
+    expect(fifthBody.error).toContain("تم تجاوز الحد الأقصى للمحاولات غير الصحيحة");
+  });
+
+  it("AC9: should block even correct OTP submission once locked out (HTTP 429)", async () => {
+    // 1. Generate valid OTP
+    const forgotReq = new NextRequest("http://localhost/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email: testEmail }),
+    });
+    await forgotPasswordHandler(forgotReq);
+    const sentEmail = getLastSentEmail();
+    expect(sentEmail).toBeDefined();
+    const correctOtp = sentEmail!.otp;
+
+    // 2. Submit 5 incorrect submissions to trigger lock
+    for (let i = 1; i <= 5; i++) {
+      await verifyOtpHandler(
+        new NextRequest("http://localhost/api/auth/verify-otp", {
+          method: "POST",
+          body: JSON.stringify({ email: testEmail, otp: `11111${i}` }),
+        })
+      );
+    }
+
+    // 3. Submitting the CORRECT OTP now must still be rejected with HTTP 429 because account is locked
+    const lockedReq = new NextRequest("http://localhost/api/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify({ email: testEmail, otp: correctOtp }),
+    });
+    const lockedRes = await verifyOtpHandler(lockedReq);
+    expect(lockedRes.status).toBe(429);
+
+    const lockedBody = await lockedRes.json();
+    expect(lockedBody.locked).toBe(true);
+    expect(lockedBody.error).toContain("تم تجاوز الحد الأقصى للمحاولات غير الصحيحة");
+  });
+
+  it("AC10: should lock requests when consecutive incorrect OTPs are submitted via reset-password endpoint", async () => {
+    // 1. Generate valid OTP
+    const forgotReq = new NextRequest("http://localhost/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email: testEmail }),
+    });
+    await forgotPasswordHandler(forgotReq);
+
+    // 2. Submit 4 incorrect attempts on /api/auth/reset-password
+    for (let i = 1; i <= 4; i++) {
+      const resetReq = new NextRequest("http://localhost/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+          email: testEmail,
+          otp: `88880${i}`,
+          newPassword,
+          confirmPassword: newPassword,
+        }),
+      });
+      const res = await resetPasswordHandler(resetReq);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toContain("كود التحقق غير صحيح أو انتهت صلاحيته");
+    }
+
+    // 3. 5th attempt locks the account
+    const fifthResetReq = new NextRequest("http://localhost/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({
+        email: testEmail,
+        otp: "888805",
+        newPassword,
+        confirmPassword: newPassword,
+      }),
+    });
+    const fifthResetRes = await resetPasswordHandler(fifthResetReq);
+    expect(fifthResetRes.status).toBe(429);
+
+    const fifthBody = await fifthResetRes.json();
+    expect(fifthBody.locked).toBe(true);
+    expect(fifthBody.error).toContain("تم تجاوز الحد الأقصى للمحاولات غير الصحيحة");
+  });
+
+  it("AC11: should reset consecutive failure counter upon successful OTP verification", async () => {
+    // 1. Generate valid OTP
+    const forgotReq = new NextRequest("http://localhost/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email: testEmail }),
+    });
+    await forgotPasswordHandler(forgotReq);
+    const sentEmail = getLastSentEmail();
+    expect(sentEmail).toBeDefined();
+
+    // 2. Submit 2 incorrect submissions
+    for (let i = 1; i <= 2; i++) {
+      const res = await verifyOtpHandler(
+        new NextRequest("http://localhost/api/auth/verify-otp", {
+          method: "POST",
+          body: JSON.stringify({ email: testEmail, otp: "000000" }),
+        })
+      );
+      expect(res.status).toBe(400);
+    }
+
+    // 3. Submit correct OTP -> resets failed attempts
+    const successRes = await verifyOtpHandler(
+      new NextRequest("http://localhost/api/auth/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ email: testEmail, otp: sentEmail!.otp }),
+      })
+    );
+    expect(successRes.status).toBe(200);
+
+    // 4. Now a subsequent failed attempt starts fresh with 4 remaining attempts
+    const afterSuccessRes = await verifyOtpHandler(
+      new NextRequest("http://localhost/api/auth/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ email: testEmail, otp: "999999" }),
+      })
+    );
+    expect(afterSuccessRes.status).toBe(400);
+    const afterBody = await afterSuccessRes.json();
+    expect(afterBody.remainingAttempts).toBe(4);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Strict Expiration Timestamp on Password Reset Tokens
+  // ---------------------------------------------------------------------------
+  it("AC12: should enforce strict expiration timestamp on password reset tokens", async () => {
+    // 1. Request password reset and verify strict expiration timestamp is returned
+    const beforeRequest = Date.now();
+    const forgotReq = new NextRequest("http://localhost/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email: testEmail }),
+    });
+    const forgotRes = await forgotPasswordHandler(forgotReq);
+    expect(forgotRes.status).toBe(200);
+
+    const forgotBody = await forgotRes.json();
+    expect(forgotBody.expiresAt).toBeDefined();
+    expect(typeof forgotBody.expiresAt).toBe("number");
+    // Default TTL is 900 seconds (15 minutes)
+    expect(forgotBody.expiresAt).toBeGreaterThan(beforeRequest + 890 * 1000);
+    expect(forgotBody.expiresAt).toBeLessThanOrEqual(beforeRequest + 910 * 1000);
+
+    // 2. Verify an expired token is strictly rejected
+    const expiredEmail = "expired.token@example.com";
+    // Save token with TTL = -10 seconds (already in the past)
+    await saveOtp(expiredEmail, "654321", -10);
+
+    expect(await isOtpExpired(expiredEmail)).toBe(true);
+
+    // Attempt to verify expired token
+    const verifyExpiredReq = new NextRequest("http://localhost/api/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify({ email: expiredEmail, otp: "654321" }),
+    });
+    const verifyExpiredRes = await verifyOtpHandler(verifyExpiredReq);
+    expect(verifyExpiredRes.status).toBe(400);
+
+    const verifyExpiredBody = await verifyExpiredRes.json();
+    expect(verifyExpiredBody.error).toBe("كود التحقق غير صحيح أو انتهت صلاحيته");
+
+    // Attempt to reset password with expired token
+    const resetExpiredReq = new NextRequest("http://localhost/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({
+        email: expiredEmail,
+        otp: "654321",
+        newPassword,
+        confirmPassword: newPassword,
+      }),
+    });
+    const resetExpiredRes = await resetPasswordHandler(resetExpiredReq);
+    expect(resetExpiredRes.status).toBe(400);
+
+    const resetExpiredBody = await resetExpiredRes.json();
+    expect(resetExpiredBody.error).toBe("كود التحقق غير صحيح أو انتهت صلاحيته");
+  });
+
+  it("AC13: should support 3-consecutive-incorrect submissions threshold in the 3–5 range", async () => {
+    const customEmail = "three.attempts@example.com";
+    await saveOtp(customEmail, "333333", 900, 3);
+
+    // Attempt 1: Failed
+    const r1 = await verifyOtpDetailed(customEmail, "000001", 3);
+    expect(r1.success).toBe(false);
+    expect(r1.locked).toBe(false);
+    expect(r1.remainingAttempts).toBe(2);
+
+    // Attempt 2: Failed
+    const r2 = await verifyOtpDetailed(customEmail, "000002", 3);
+    expect(r2.success).toBe(false);
+    expect(r2.locked).toBe(false);
+    expect(r2.remainingAttempts).toBe(1);
+
+    // Attempt 3: 3rd consecutive failed submission triggers lock
+    const r3 = await verifyOtpDetailed(customEmail, "000003", 3);
+    expect(r3.success).toBe(false);
+    expect(r3.locked).toBe(true);
+    expect(r3.remainingAttempts).toBe(0);
+
+    // Check lock status
+    const lock = await isOtpLocked(customEmail);
+    expect(lock.locked).toBe(true);
   });
 });

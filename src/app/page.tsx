@@ -29,9 +29,9 @@ export default function LandingPage() {
             aria-label="الرئيسية - الأستاذ محمود الشحات للفيزياء"
           >
             {/* Enlarged Prominent Brand Logo Container */}
-            <div className="relative overflow-hidden rounded-2xl border border-physicsCyan-500/30 bg-[#0b1329] p-1 shadow-lg shadow-physicsCyan-500/10 group-hover:border-physicsCyan-400/60 group-hover:shadow-[0_0_25px_-3px_rgba(6,182,212,0.35)] transition-all duration-300">
+            <div className="relative overflow-hidden rounded-2xl border border-physicsCyan-500/30 bg-[#0A1128] p-1 shadow-lg shadow-physicsCyan-500/15 group-hover:border-physicsCyan-400/60 group-hover:shadow-[0_0_25px_-3px_rgba(6,182,212,0.35)] transition-all duration-300">
               <Image
-                src="/Images/logo.jpg"
+                src="/Images/final_logo.jpg"
                 alt="شعار منصة الأستاذ محمود الشحات للفيزياء"
                 width={180}
                 height={100}

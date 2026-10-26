@@ -2,6 +2,7 @@ import React from "react";
 import { db } from "@/lib/db";
 import { Users, BookOpen, KeyRound, HelpCircle, Trophy, UserCheck } from "lucide-react";
 import Link from "next/link";
+import AdminEmailTestClient from "./AdminEmailTestClient";
 
 export default async function AdminDashboardPage() {
   // Query platform statistics
@@ -172,6 +173,9 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Admin Email Service Configuration Diagnostic & Testing Card */}
+        <AdminEmailTestClient />
       </div>
     </div>
   );

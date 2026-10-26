@@ -133,6 +133,20 @@ export class ApiClient {
     });
   }
 
+  // --- Email Service Admin Verification ---
+  static async verifyEmailConfig() {
+    return this.request<{ success: boolean; message?: string; error?: string; code?: string; details?: string }>('/admin/email/test', {
+      method: 'GET',
+    });
+  }
+
+  static async testEmailDelivery(testEmail?: string) {
+    return this.request<{ success: boolean; message?: string; error?: string; code?: string; details?: string }>('/admin/email/test', {
+      method: 'POST',
+      body: JSON.stringify({ testEmail }),
+    });
+  }
+
   // --- Courses & Video Protection Endpoints ---
   static async getCourses(grade?: string) {
     return this.request<any[]>(`/courses${grade ? `?grade=${grade}` : ''}`);
